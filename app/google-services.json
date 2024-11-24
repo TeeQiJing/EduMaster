@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "892989105581",
+    "firebase_url": "https://edumasters-10766-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "edumasters-10766",
+    "storage_bucket": "edumasters-10766.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892989105581:android:fafda28c70b2350431ed24",
+        "android_client_info": {
+          "package_name": "com.practical.edumasters"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-960yaMWq3vFxgd0BDHUfZUJzLv9yOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:892989105581:android:194549fd49aa125731ed24",
+        "android_client_info": {
+          "package_name": "om.practical.edumasters"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAb-960yaMWq3vFxgd0BDHUfZUJzLv9yOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
