@@ -2,7 +2,11 @@ package com.practical.edumasters.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;  // Import Fragment class
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -13,6 +17,8 @@ import com.practical.edumasters.fragments.CommunityFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
+
+import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -64,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return false;
         });
-
     }
 
     // Method to load fragments dynamically
