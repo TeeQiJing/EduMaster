@@ -46,7 +46,6 @@ public class RegisterActivity extends AppCompatActivity {
             signUp(email, password, username);
         });
 
-
     }
 
 
