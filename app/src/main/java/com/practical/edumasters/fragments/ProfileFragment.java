@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -20,6 +21,7 @@ import com.practical.edumasters.activities.LoginActivity;
 import com.practical.edumasters.models.User;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -77,7 +79,7 @@ public class ProfileFragment extends Fragment {
         avatarImageView.setOnClickListener(v -> openImagePicker());
 
         // Set up logout button click listener
-        btnLogout.setOnClickListener(v -> logout());
+        btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         return rootView;
     }
@@ -94,8 +96,8 @@ public class ProfileFragment extends Fragment {
                 if (user != null) {
                     // Display user details
                     tvUsername.setText(user.getUsername());
-                    tvPoints.setText(user.getXp() + " Total Points");
-                    tvCourses.setText(user.getCourses() != null ? user.getCourses().size() + " Courses Enrolled" : "0 Courses Enrolled");
+                    tvPoints.setText(user.getXp() + "\nTotal Points");
+                    tvCourses.setText(user.getCourses() != null ? user.getCourses().size() + "\nCourses Enrolled" : "0 \nCourses Enrolled");
 
                     // Load avatar if it exists
                     if (user.getAvatar() != null) {
@@ -196,6 +198,34 @@ public class ProfileFragment extends Fragment {
     /**
      * Logout the user.
      */
+
+    private void showLogoutConfirmationDialog() {
+        // Inflate the custom layout for the dialog
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View dialogView = inflater.inflate(R.layout.dialog_logout_confirmation, null);
+
+        // Build the AlertDialog
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        // Set up Cancel button
+        Button cancelButton = dialogView.findViewById(R.id.cancel_button);
+        cancelButton.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog on cancel
+
+        // Set up Logout button
+        Button logoutButton = dialogView.findViewById(R.id.logout_button);
+        logoutButton.setOnClickListener(v -> {
+            dialog.dismiss(); // Dismiss dialog
+            logout(); // Call the logout method
+        });
+
+        // Show the dialog
+        dialog.show();
+    }
+
+
     private void logout() {
         mAuth.signOut();
         Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
