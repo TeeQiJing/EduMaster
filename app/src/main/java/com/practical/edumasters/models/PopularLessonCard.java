@@ -1,18 +1,16 @@
-package com.practical.edumasters.activities;
+package com.practical.edumasters.models;
 
-import android.graphics.drawable.Drawable;
-
-public class LessonCard {
+public class PopularLessonCard {
     int image;
     String level;
     String title;
-    String progress;
+    String ratings;
 
-    public LessonCard(int image, String level, String title, String progress) {
+    public PopularLessonCard(int image, String level, String title, String ratings) {
         this.image = image;
         this.level = level;
         this.title = title;
-        this.progress = progress;
+        this.ratings = ratings;
     }
 
     public int getImage() {
@@ -39,11 +37,11 @@ public class LessonCard {
         this.title = title;
     }
 
-    public String getProgress() {
-        return progress;
+    public String getRatings() {
+        return ratings;
     }
 
-    public void setProgress(String progress) {
-        this.progress = progress;
+    public void setRatings(String ratings) {
+        this.ratings = ratings;
     }
 }
