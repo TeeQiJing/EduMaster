@@ -1,66 +1,56 @@
 package com.practical.edumasters.fragments;
 
 import android.os.Bundle;
-
 import androidx.fragment.app.Fragment;
-
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-
 import com.practical.edumasters.R;
+import com.practical.edumasters.adapters.LessonAdapter;
+import com.practical.edumasters.models.Lesson;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link CoursesFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class CoursesFragment extends Fragment {
+public class LessonFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
-
-    public CoursesFragment() {
+    public LessonFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment ChapterFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static CoursesFragment newInstance(String param1, String param2) {
-        CoursesFragment fragment = new CoursesFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_courses, container, false);
+        View view = inflater.inflate(R.layout.fragment_lesson, container, false);
+
+        RecyclerView recyclerView = view.findViewById(R.id.chaptersRecyclerView);
+        recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+
+        List<Lesson> lessonList = fetchLessonsFromDatabase(); // Replace with your database fetching logic
+        // Handle lesson click
+        // Navigate to quiz
+        // Open lesson content
+        LessonAdapter adapter = new LessonAdapter(getContext(), lessonList, lesson -> {
+            // Handle lesson click
+            if ("quiz".equals(lesson.getType())) {
+                // Navigate to quiz
+            } else {
+                // Open lesson content
+            }
+        });
+
+        recyclerView.setAdapter(adapter);
+
+        return view;
+    }
+
+    private List<Lesson> fetchLessonsFromDatabase() {
+        // Mock data for testing
+        List<Lesson> lessons = new ArrayList<>();
+        lessons.add(new Lesson(1, "Topic 1: Introduction to Java", "video", true, 2));
+        lessons.add(new Lesson(2, "Topic 2: Advanced Java", "text", false, 3));
+        lessons.add(new Lesson(3, "Final Quiz", "quiz", false, 0));
+        return lessons;
     }
 }

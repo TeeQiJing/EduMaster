@@ -16,6 +16,7 @@ import com.practical.edumasters.fragments.ChatFragment;
 import com.practical.edumasters.fragments.CommunityFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
+import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 
 import java.util.ArrayList;
@@ -41,12 +42,13 @@ public class MainActivity extends AppCompatActivity {
         // Initialize fragments
         profileFragment = new ProfileFragment();
         learnFragment = new LearnFragment();
+        LessonFragment lessonFragment = new LessonFragment();
         communityFragment = new CommunityFragment();
         leaderboardFragment = new LeaderboardFragment();
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-        loadFragment(learnFragment);
+        loadFragment(lessonFragment);
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
@@ -68,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
                 loadFragment(profileFragment);
                 return true;
             }
+
             return false;
         });
     }
