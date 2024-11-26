@@ -17,13 +17,13 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
 
     private Context context;
     private List<Chapter> chapters;
-    private OnLessonClickListener listener;
+    private OnChapterClickListener listener;
 
-    public interface OnLessonClickListener {
-        void onLessonClick(Chapter chapter);
+    public interface OnChapterClickListener {
+        void onChapterClick(Chapter chapter);
     }
 
-    public ChapterAdapter(Context context, List<Chapter> chapters, OnLessonClickListener listener) {
+    public ChapterAdapter(Context context, List<Chapter> chapters, OnChapterClickListener listener) {
         this.context = context;
         this.chapters = chapters;
         this.listener = listener;
@@ -42,16 +42,19 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
 
         holder.title.setText(chapter.getTitle());
 
-        // Set type icon
+        // Set the chapter type icon (video, text, quiz)
         switch (chapter.getType()) {
-            case "text":
-                holder.icon.setImageResource(R.mipmap.ic_text);
-                break;
             case "video":
                 holder.icon.setImageResource(R.mipmap.ic_video);
                 break;
+            case "text":
+                holder.icon.setImageResource(R.mipmap.ic_text);
+                break;
             case "quiz":
                 holder.icon.setImageResource(R.mipmap.ic_quiz);
+                break;
+            default:
+                holder.icon.setImageResource(R.mipmap.ic_launcher);
                 break;
         }
 
@@ -61,7 +64,7 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
             holder.itemView.setOnClickListener(null);
         } else {
             holder.itemView.setAlpha(1.0f);
-            holder.itemView.setOnClickListener(v -> listener.onLessonClick(chapter));
+            holder.itemView.setOnClickListener(v -> listener.onChapterClick(chapter));
         }
     }
 
@@ -76,8 +79,8 @@ public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHold
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.lessonTitle);
-            icon = itemView.findViewById(R.id.lessonIcon);
+            title = itemView.findViewById(R.id.chapterTitle);
+            icon = itemView.findViewById(R.id.chapterIcon);
         }
     }
 }
