@@ -1,4 +1,4 @@
-package com.practical.edumasters.activities;
+package com.practical.edumasters.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -12,25 +12,29 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.practical.edumasters.R;
+import com.practical.edumasters.fragments.LearnFragment;
+import com.practical.edumasters.fragments.ProfileFragment;
+import com.practical.edumasters.models.CurrentLessonCard;
 
 import java.util.ArrayList;
 
-public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
-    ArrayList<LessonCard> cards = new ArrayList<>();
-    Context context;
+public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
+    ArrayList<CurrentLessonCard> cards = new ArrayList<>();
+    FragmentManager fragmentManager;
 
-    public CardAdapter(Context context) {
-        this.context = context;
+    public CurrentLessonCardAdapter(FragmentManager fragmentManager) {
+        this.fragmentManager = fragmentManager;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_lesson_card, parent, false);
         ViewHolder holder = new ViewHolder(view);
         return holder;
     }
@@ -45,17 +49,12 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
         holder.RLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Enrolled Successfully", Snackbar.LENGTH_INDEFINITE)
-                        .setAction("OK", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Toast.makeText(context, "Thank You!", Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .setActionTextColor(Color.RED)
-                        .setTextColor(Color.YELLOW)
-                        .show();
+                ProfileFragment profileFragment = new ProfileFragment();
 
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, profileFragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
     }
@@ -65,7 +64,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
         return cards.size();
     }
 
-    public void setCard(ArrayList<LessonCard> cards) {
+    public void setCard(ArrayList<CurrentLessonCard> cards) {
         this.cards = cards;
         notifyDataSetChanged();
     }
