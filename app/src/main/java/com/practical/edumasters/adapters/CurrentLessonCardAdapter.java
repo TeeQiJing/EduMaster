@@ -1,7 +1,6 @@
 package com.practical.edumasters.activities;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,18 +18,18 @@ import com.practical.edumasters.R;
 
 import java.util.ArrayList;
 
-public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
-    ArrayList<LessonCard> cards = new ArrayList<>();
+public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
+    ArrayList<CurrentLessonCard> cards = new ArrayList<>();
     Context context;
 
-    public CardAdapter(Context context) {
+    public CurrentLessonCardAdapter(Context context) {
         this.context = context;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.lesson_card, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_lesson_card, parent, false);
         ViewHolder holder = new ViewHolder(view);
         return holder;
     }
@@ -52,8 +51,6 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
                                 Toast.makeText(context, "Thank You!", Toast.LENGTH_LONG).show();
                             }
                         })
-                        .setActionTextColor(Color.RED)
-                        .setTextColor(Color.YELLOW)
                         .show();
 
             }
@@ -65,7 +62,7 @@ public class CardAdapter extends RecyclerView.Adapter<CardAdapter.ViewHolder>{
         return cards.size();
     }
 
-    public void setCard(ArrayList<LessonCard> cards) {
+    public void setCard(ArrayList<CurrentLessonCard> cards) {
         this.cards = cards;
         notifyDataSetChanged();
     }
