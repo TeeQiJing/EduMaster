@@ -1,66 +1,124 @@
 package com.practical.edumasters.fragments;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
+import android.os.Handler;
+import android.util.Base64;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.ImageView;
+import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.fragment.app.Fragment;
+
+import com.google.android.material.appbar.MaterialToolbar;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.textfield.TextInputEditText;
+import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
+import com.practical.edumasters.models.User;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link FeedbackFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class FeedbackFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+    private ImageView avatarImageView;
+    private TextView tvUsername;
+    private FirebaseAuth mAuth;
+    private FirebaseFirestore db;
+    private TextInputEditText etFeedback;
+    private MaterialButton btnSubmitFeedback;
 
     public FeedbackFragment() {
         // Required empty public constructor
     }
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment FeedbackFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static FeedbackFragment newInstance(String param1, String param2) {
-        FeedbackFragment fragment = new FeedbackFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+        mAuth = FirebaseAuth.getInstance();
+        db = FirebaseFirestore.getInstance();
+        loadUserProfile();
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_feedback, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_feedback, container, false);
+
+        avatarImageView = rootView.findViewById(R.id.profileImage);
+        tvUsername = rootView.findViewById(R.id.tvUsername);
+        etFeedback = rootView.findViewById(R.id.etFeedback);
+        btnSubmitFeedback = rootView.findViewById(R.id.btnSubmitFeedback);
+
+        // Initialize the toolbar
+        MaterialToolbar toolbar = rootView.findViewById(R.id.topAppBar);
+        toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+
+        Spinner feedbackTypeSpinner = rootView.findViewById(R.id.spinnerFeedbackType);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(getContext(),
+                R.array.feedback_types, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        feedbackTypeSpinner.setAdapter(adapter);
+
+        // Set up the submit button
+        btnSubmitFeedback.setOnClickListener(v -> submitFeedback());
+
+        // Return the root view
+        return rootView;
+    }
+
+    private void loadUserProfile() {
+        String userId = mAuth.getCurrentUser().getUid();
+        DocumentReference userDocRef = db.collection("users").document(userId);  // Fetch from Firestore
+
+        userDocRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot documentSnapshot = task.getResult();
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    User user = documentSnapshot.toObject(User.class);
+                    if (user != null) {
+                        // Display user details
+                        tvUsername.setText(user.getUsername());
+
+                        // Load avatar if it exists
+                        if (user.getAvatar() != null) {
+                            String base64Image = user.getAvatar();
+                            byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                            avatarImageView.setImageBitmap(decodedByte);
+                        }
+                    }
+                }
+            } else {
+                Toast.makeText(getContext(), "Failed to load profile", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void submitFeedback() {
+        String feedbackText = etFeedback.getText().toString().trim();
+
+        if (feedbackText.isEmpty()) {
+            // If feedback is empty, show a Toast message
+            Toast.makeText(getContext(), "Please provide feedback", Toast.LENGTH_SHORT).show();
+        } else {
+            // Simulate feedback submission (you can implement the actual logic)
+            Toast.makeText(getContext(), "Feedback sent successfully", Toast.LENGTH_SHORT).show();
+
+            etFeedback.setText("");
+
+
+
+        }
     }
 }
