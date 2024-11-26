@@ -14,6 +14,7 @@ import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
 import com.practical.edumasters.fragments.ChapterFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
+import com.practical.edumasters.models.PopularLessonCard;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,6 +30,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+//        LearnFragment learnFragment1 = new LearnFragment();
+//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
+//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
+//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
+
         // Initialize binding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
@@ -42,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-        loadFragment(chapterFragment);
+        loadFragment(learnFragment);
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
