@@ -1,39 +1,52 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="8dp">
 
-    <ImageView
-        android:id="@+id/chapterIcon"
+    <!-- Chapter Icon inside Circle -->
+    <FrameLayout
+        android:id="@+id/chapterIconContainer"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginEnd="8dp"
-        android:src="@drawable/ic_google"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:background="@drawable/circle_background"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <ImageView
+            android:id="@+id/chapterIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_google" />
+    </FrameLayout>
+
+    <!-- Chapter Title -->
+
+    <!-- Arrow Icon -->
     <TextView
         android:id="@+id/chapterTitle"
         android:layout_width="259dp"
         android:layout_height="39dp"
         android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:gravity="start|center_vertical"
         android:text="Lesson Title"
         android:textSize="16sp"
-        app:layout_constraintStart_toEndOf="@id/chapterIcon"
+        app:layout_constraintStart_toEndOf="@+id/chapterIconContainer"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
         android:id="@+id/arrowIcon"
         android:layout_width="40dp"
         android:layout_height="40dp"
+        android:layout_marginTop="8dp"
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_next"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>
