@@ -8,14 +8,15 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import com.practical.edumasters.R;
-import com.practical.edumasters.adapters.LessonAdapter;
-import com.practical.edumasters.models.Lesson;
+import com.practical.edumasters.adapters.ChapterAdapter;
+import com.practical.edumasters.models.Chapter;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class LessonFragment extends Fragment {
+public class ChapterFragment extends Fragment {
 
-    public LessonFragment() {
+    public ChapterFragment() {
         // Required empty public constructor
     }
 
@@ -27,13 +28,13 @@ public class LessonFragment extends Fragment {
         RecyclerView recyclerView = view.findViewById(R.id.chaptersRecyclerView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        List<Lesson> lessonList = fetchLessonsFromDatabase(); // Replace with your database fetching logic
+        List<Chapter> chapterList = fetchLessonsFromDatabase(); // Replace with your database fetching logic
         // Handle lesson click
         // Navigate to quiz
         // Open lesson content
-        LessonAdapter adapter = new LessonAdapter(getContext(), lessonList, lesson -> {
+        ChapterAdapter adapter = new ChapterAdapter(getContext(), chapterList, chapter -> {
             // Handle lesson click
-            if ("quiz".equals(lesson.getType())) {
+            if ("quiz".equals(chapter.getType())) {
                 // Navigate to quiz
             } else {
                 // Open lesson content
@@ -45,12 +46,12 @@ public class LessonFragment extends Fragment {
         return view;
     }
 
-    private List<Lesson> fetchLessonsFromDatabase() {
+    private List<Chapter> fetchLessonsFromDatabase() {
         // Mock data for testing
-        List<Lesson> lessons = new ArrayList<>();
-        lessons.add(new Lesson(1, "Topic 1: Introduction to Java", "video", true, 2));
-        lessons.add(new Lesson(2, "Topic 2: Advanced Java", "text", false, 3));
-        lessons.add(new Lesson(3, "Final Quiz", "quiz", false, 0));
-        return lessons;
+        List<Chapter> chapters = new ArrayList<>();
+        chapters.add(new Chapter(1, "Topic 1: Introduction to Java", "video", true, 2));
+        chapters.add(new Chapter(2, "Topic 2: Advanced Java", "text", false, 3));
+        chapters.add(new Chapter(3, "Final Quiz", "quiz", false, 0));
+        return chapters;
     }
 }

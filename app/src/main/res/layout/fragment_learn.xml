@@ -28,7 +28,7 @@
         android:layout_below="@id/greeting"
         android:layout_marginLeft="20dp"
         android:fontFamily="@font/roboto"
-        android:text="Find your lessons today!"
+        android:text="Find your chapters today!"
         android:textColor="@color/white" />
 
     <ImageView

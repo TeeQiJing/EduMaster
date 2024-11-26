@@ -2,11 +2,7 @@ package com.practical.edumasters.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;  // Import Fragment class
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
 
-import android.content.Context;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.Log;
 
@@ -16,10 +12,8 @@ import com.practical.edumasters.fragments.ChatFragment;
 import com.practical.edumasters.fragments.CommunityFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
-import com.practical.edumasters.fragments.LessonFragment;
+import com.practical.edumasters.fragments.ChapterFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -42,13 +36,13 @@ public class MainActivity extends AppCompatActivity {
         // Initialize fragments
         profileFragment = new ProfileFragment();
         learnFragment = new LearnFragment();
-        LessonFragment lessonFragment = new LessonFragment();
+        ChapterFragment chapterFragment = new ChapterFragment();
         communityFragment = new CommunityFragment();
         leaderboardFragment = new LeaderboardFragment();
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-        loadFragment(lessonFragment);
+        loadFragment(chapterFragment);
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
