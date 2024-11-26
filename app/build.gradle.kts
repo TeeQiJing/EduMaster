@@ -85,4 +85,7 @@ dependencies {
 
 // Firebase SDK
     implementation("com.google.firebase:firebase-core:21.1.1")
+
+//    Google Sign In
+    implementation("com.google.android.gms:play-services-auth:21.2.0")
 }

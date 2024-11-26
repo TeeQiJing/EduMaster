@@ -1,0 +1,75 @@
+package com.practical.edumasters.activities;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.Handler;
+import android.text.TextUtils;
+import android.widget.Toast;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.practical.edumasters.R;
+import com.practical.edumasters.databinding.ActivityForgotPasswordBinding;
+
+import java.security.SecureRandom;
+
+
+public class ForgotPasswordActivity extends AppCompatActivity {
+
+    private ActivityForgotPasswordBinding binding;
+    private FirebaseAuth mAuth;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        binding = ActivityForgotPasswordBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+
+        mAuth = FirebaseAuth.getInstance();
+        binding.tvRegisterHere.setOnClickListener(v->{
+            startActivity(new Intent(getApplicationContext(), RegisterActivity.class));
+        });
+
+        binding.btnSendEmail.setOnClickListener(v -> {
+            String email = binding.etEmail.getText().toString().trim();
+
+            if (TextUtils.isEmpty(email)) {
+                Toast.makeText(ForgotPasswordActivity.this, "Please enter your email", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            // Generate random password
+            String newPassword = generateRandomPassword(8);
+
+            // Send reset email
+            mAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
+                if (task.isSuccessful()) {
+                    // Optionally, you can email the new password directly to the user or store it securely
+                    Toast.makeText(ForgotPasswordActivity.this, "Password reset email sent.", Toast.LENGTH_SHORT).show();
+                    // Redirect to LoginActivity after 3 seconds
+                    new Handler().postDelayed(() -> {
+                        Intent intent = new Intent(ForgotPasswordActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        finish(); // Close the current activity
+                    }, 3000); // 3000ms = 3 seconds
+                } else {
+                    Toast.makeText(ForgotPasswordActivity.this, "Failed to send reset email: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
+        });
+    }
+
+    private String generateRandomPassword(int length) {
+        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
+        SecureRandom random = new SecureRandom();
+        StringBuilder password = new StringBuilder();
+
+        for (int i = 0; i < length; i++) {
+            int index = random.nextInt(chars.length());
+            password.append(chars.charAt(index));
+        }
+
+        return password.toString();
+    }
+}
