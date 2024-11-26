@@ -68,13 +68,13 @@ public class LeaderboardFragment extends Fragment {
         }
 
     }
-    private void setUpTestingmodel(){
-        String[] testing_name=getResources().getStringArray(R.array.testing_name);
-        String[] testing_mark=getResources().getStringArray(R.array.testing_mark);
-        for(int i=0;i<testing_name.length;i++){
-            testingModelArrayList.add(new LeaderboardCard(testing_name[i],testing_mark[i]));
-        }
-    }
+//    private void setUpTestingmodel(){
+//        String[] testing_name=getResources().getStringArray(R.array.testing_name);
+//        String[] testing_mark=getResources().getStringArray(R.array.testing_mark);
+//        for(int i=0;i<testing_name.length;i++){
+//            testingModelArrayList.add(new LeaderboardCard(testing_name[i],testing_mark[i]));
+//        }
+//    }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -83,7 +83,7 @@ public class LeaderboardFragment extends Fragment {
     }
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState){
-        setUpTestingmodel();
+//        setUpTestingmodel();
         TextView firstName=view.findViewById(R.id.firstName);
         TextView firstMark=view.findViewById(R.id.firstMark);
         TextView secondName=view.findViewById(R.id.secondName);

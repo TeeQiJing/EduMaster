@@ -1,12 +1,12 @@
 package com.practical.edumasters.models;
 
-public class Chapter {
+public class Quiz {
     private String id;
     private String title;
 
-    public Chapter() {}
+    public Quiz() {}
 
-    public Chapter(String id, String title) {
+    public Quiz(String id, String title) {
         this.id = id;
         this.title = title;
     }

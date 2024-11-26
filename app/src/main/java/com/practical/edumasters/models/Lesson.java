@@ -1,39 +1,33 @@
 package com.practical.edumasters.models;
 
 public class Lesson {
+    private String id;
     private String title;
-    private String imageUrl; // Add the imageUrl field
     private double rating;
+    private String pattern;
 
-    // Constructor
-    public Lesson(String title, String imageUrl, double rating) {
+    public Lesson() {}
+
+    public Lesson(String id, String title, double rating, String pattern) {
+        this.id = id;
         this.title = title;
-        this.imageUrl = imageUrl;
         this.rating = rating;
+        this.pattern = pattern;
     }
 
-    // Getters and Setters
+    public String getId() {
+        return id;
+    }
+
     public String getTitle() {
         return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getImageUrl() {
-        return imageUrl;  // Getter for imageUrl
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     public double getRating() {
         return rating;
     }
 
-    public void setRating(double rating) {
-        this.rating = rating;
+    public String getPattern() {
+        return pattern;
     }
 }

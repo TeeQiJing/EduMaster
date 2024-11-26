@@ -8,79 +8,93 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.practical.edumasters.R;
 import com.practical.edumasters.models.Chapter;
+import com.practical.edumasters.models.Quiz;
 
 import java.util.List;
 
-public class ChapterAdapter extends RecyclerView.Adapter<ChapterAdapter.ViewHolder> {
+public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-    private Context context;
-    private List<Chapter> chapters;
-    private OnChapterClickListener listener;
+    private final Context context;
+    private final List<Object> contentList; // List of both Chapters and Quizzes
+    private final OnChapterClickListener chapterClickListener;
+
+    // Define the view types for Chapter and Quiz
+    private static final int TYPE_CHAPTER = 0;
+    private static final int TYPE_QUIZ = 1;
 
     public interface OnChapterClickListener {
-        void onChapterClick(Chapter chapter);
+        void onChapterClick(Object chapterOrQuiz);
     }
 
-    public ChapterAdapter(Context context, List<Chapter> chapters, OnChapterClickListener listener) {
+    public ChapterAdapter(Context context, List<Object> contentList, OnChapterClickListener listener) {
         this.context = context;
-        this.chapters = chapters;
-        this.listener = listener;
-    }
-
-    @NonNull
-    @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_chapter, parent, false);
-        return new ViewHolder(view);
+        this.contentList = contentList;
+        this.chapterClickListener = listener;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Chapter chapter = chapters.get(position);
-
-        holder.title.setText(chapter.getTitle());
-
-        // Set the chapter type icon (video, text, quiz)
-        switch (chapter.getType()) {
-            case "video":
-                holder.icon.setImageResource(R.mipmap.ic_video);
-                break;
-            case "text":
-                holder.icon.setImageResource(R.mipmap.ic_text);
-                break;
-            case "quiz":
-                holder.icon.setImageResource(R.mipmap.ic_quiz);
-                break;
-            default:
-                holder.icon.setImageResource(R.mipmap.ic_launcher);
-                break;
+    public int getItemViewType(int position) {
+        // Check the type of item and return corresponding view type
+        if (contentList.get(position) instanceof Chapter) {
+            return TYPE_CHAPTER;
+        } else if (contentList.get(position) instanceof Quiz) {
+            return TYPE_QUIZ;
         }
+        return -1; // Default case (should never happen)
+    }
 
-        // Set unlock status
-        if (!chapter.isUnlocked()) {
-            holder.itemView.setAlpha(0.5f);
-            holder.itemView.setOnClickListener(null);
+    @Override
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.item_chapter, parent, false);
+        if (viewType == TYPE_CHAPTER) {
+            return new ChapterViewHolder(view);
         } else {
-            holder.itemView.setAlpha(1.0f);
-            holder.itemView.setOnClickListener(v -> listener.onChapterClick(chapter));
+            return new QuizViewHolder(view);
+        }
+    }
+
+    @Override
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof ChapterViewHolder) {
+            Chapter chapter = (Chapter) contentList.get(position);
+            ((ChapterViewHolder) holder).chapterTitle.setText(chapter.getTitle());
+            ((ChapterViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_learn); // Chapter Icon
+            holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(chapter));
+        } else if (holder instanceof QuizViewHolder) {
+            Quiz quiz = (Quiz) contentList.get(position);
+            ((QuizViewHolder) holder).chapterTitle.setText(quiz.getTitle());
+            ((QuizViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_quiz); // Quiz Icon
+            holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(quiz));
         }
     }
 
     @Override
     public int getItemCount() {
-        return chapters.size();
+        return contentList.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView title;
-        ImageView icon;
+    public static class ChapterViewHolder extends RecyclerView.ViewHolder {
+        TextView chapterTitle;
+        ImageView chapterIcon;
 
-        public ViewHolder(@NonNull View itemView) {
+        public ChapterViewHolder(View itemView) {
             super(itemView);
-            title = itemView.findViewById(R.id.chapterTitle);
-            icon = itemView.findViewById(R.id.chapterIcon);
+            chapterTitle = itemView.findViewById(R.id.chapterTitle);
+            chapterIcon = itemView.findViewById(R.id.chapterIcon);
+        }
+    }
+
+    public static class QuizViewHolder extends RecyclerView.ViewHolder {
+        TextView chapterTitle;
+        ImageView chapterIcon;
+
+        public QuizViewHolder(View itemView) {
+            super(itemView);
+            chapterTitle = itemView.findViewById(R.id.chapterTitle);
+            chapterIcon = itemView.findViewById(R.id.chapterIcon);
         }
     }
 }
