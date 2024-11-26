@@ -45,17 +45,17 @@ public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesson
         holder.lessonTitle.setText(cards.get(position).getTitle());
         holder.progressBar.setProgress(Integer.valueOf(cards.get(position).getProgress()));
         holder.progress.setText(cards.get(position).getProgress() + "%");
-        holder.RLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ProfileFragment profileFragment = new ProfileFragment();
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, profileFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
+//        holder.RLayout.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                LessonFragment lessonFragment = new LessonFragment()
+//
+//                fragmentManager.beginTransaction()
+//                        .replace(R.id.fragment_container, lessonFragment)
+//                        .addToBackStack(null)
+//                        .commit();
+//            }
+//        });
     }
 
     @Override
