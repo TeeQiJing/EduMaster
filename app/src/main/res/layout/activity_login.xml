@@ -90,89 +90,9 @@
             android:layout_marginBottom="@dimen/_16sdp" />
 
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/_5sdp"
-            android:layout_marginBottom="@dimen/_16sdp">
 
-            <!-- Left Divider -->
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/divider_left"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:background="@color/gray"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toStartOf="@id/tv_or_continue_with"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintWidth_percent="0.4" />
 
-            <!-- Text -->
-            <TextView
-                android:id="@+id/tv_or_continue_with"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/or_continue_with"
-                android:textSize="@dimen/_14ssp"
-                android:textColor="#474242"
-                android:paddingStart="@dimen/_10sdp"
-                android:paddingEnd="@dimen/_10sdp"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toEndOf="@id/divider_left"
-                app:layout_constraintEnd_toStartOf="@id/divider_right" />
 
-            <!-- Right Divider -->
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/divider_right"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:background="@color/gray"
-                app:layout_constraintStart_toEndOf="@id/tv_or_continue_with"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintWidth_percent="0.4" />
-        </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Social Media Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center"
-            android:layout_marginBottom="@dimen/_16sdp">
-
-            <ImageView
-                android:id="@+id/iv_google"
-                android:layout_weight="1"
-                android:layout_width="@dimen/_48sdp"
-                android:layout_height="@dimen/_48sdp"
-                android:padding="@dimen/_15sdp"
-                android:src="@drawable/ic_google"
-                android:background="@drawable/register_third_app_background"
-                android:layout_marginEnd="@dimen/_8sdp" />
-
-            <ImageView
-                android:id="@+id/iv_apple"
-                android:layout_weight="1"
-                android:layout_width="@dimen/_48sdp"
-                android:layout_height="@dimen/_48sdp"
-                android:src="@drawable/ic_apple"
-                android:padding="@dimen/_14sdp"
-                android:background="@drawable/register_third_app_background"
-                android:layout_marginEnd="@dimen/_8sdp" />
-
-            <ImageView
-                android:id="@+id/iv_facebook"
-                android:layout_weight="1"
-                android:layout_width="@dimen/_48sdp"
-                android:layout_height="@dimen/_48sdp"
-                android:padding="@dimen/_12sdp"
-                android:background="@drawable/register_third_app_background"
-                android:src="@drawable/ic_facebook" />
-        </LinearLayout>
 
         <!-- Already Have an Account -->
         <TextView

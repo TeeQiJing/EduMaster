@@ -10,18 +10,19 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+
 import com.practical.edumasters.databinding.ActivityLoginBinding;
 
-import org.mindrot.jbcrypt.BCrypt;
 
 public class LoginActivity extends AppCompatActivity {
 
     private ActivityLoginBinding binding; // ViewBinding for layout
     private FirebaseAuth mAuth; // FirebaseAuth instance
+
+
 
 
     @Override
@@ -34,19 +35,23 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance(); // Initialize FirebaseAuth
 
-        binding.tvRegisterHere.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+
+        binding.tvRegisterHere.setOnClickListener(v ->  {
+
                 startActivity(new Intent(getApplicationContext(), RegisterActivity.class));
-            }
+
         });
 
         // Login Button Click Listener
-        binding.btnLogin.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        binding.btnLogin.setOnClickListener(v-> {
+
                 loginUser();
-            }
+
+        });
+
+        binding.tvForgotPassword.setOnClickListener(v -> {
+            startActivity(new Intent(getApplicationContext(), ForgotPasswordActivity.class));
+
         });
 
     }
@@ -115,6 +120,14 @@ public class LoginActivity extends AppCompatActivity {
     private boolean isValidEmail(String email) {
         return !TextUtils.isEmpty(email) && Patterns.EMAIL_ADDRESS.matcher(email).matches();
     }
+
+
+
+
+
+
+
+
 
 
 
