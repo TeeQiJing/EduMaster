@@ -1,44 +1,54 @@
 package com.practical.edumasters.models;
 
 public class Chapter {
+
     private int id;
     private String title;
-    private String type;
-    private boolean isUnlocked;
-    private int nextLessonId;
+    private String type; // This field represents the type of chapter (video, text, quiz)
+    private boolean unlocked; // Represents whether the chapter is unlocked or not
+    private int lessonsCount; // Number of lessons in the chapter
 
-    // Constructors
-    public Chapter(int id, String title, String type, boolean isUnlocked, int nextLessonId) {
+    // Constructor
+    public Chapter(int id, String title, String type, boolean unlocked) {
         this.id = id;
         this.title = title;
         this.type = type;
+        this.unlocked = unlocked;
 
-        this.isUnlocked = isUnlocked;
-        this.nextLessonId = nextLessonId;
     }
 
-    // Getters and Setters
+    // Getter and Setter methods
     public int getId() {
         return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public String getTitle() {
         return title;
     }
 
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
     public String getType() {
         return type;
     }
 
-    public boolean isUnlocked() {
-        return isUnlocked;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public int getNextLessonId() {
-        return nextLessonId;
+    public boolean isUnlocked() {
+        return unlocked;
     }
 
     public void setUnlocked(boolean unlocked) {
-        isUnlocked = unlocked;
+        this.unlocked = unlocked;
     }
+
+
 }

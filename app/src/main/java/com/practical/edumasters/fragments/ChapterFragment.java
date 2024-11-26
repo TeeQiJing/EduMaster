@@ -25,7 +25,7 @@ public class ChapterFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_lesson, container, false);
 
-        RecyclerView recyclerView = view.findViewById(R.id.chaptersRecyclerView);
+        RecyclerView recyclerView = view.findViewById(R.id.chapterRecycleView);
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
         List<Chapter> chapterList = fetchLessonsFromDatabase(); // Replace with your database fetching logic
@@ -49,9 +49,9 @@ public class ChapterFragment extends Fragment {
     private List<Chapter> fetchLessonsFromDatabase() {
         // Mock data for testing
         List<Chapter> chapters = new ArrayList<>();
-        chapters.add(new Chapter(1, "Topic 1: Introduction to Java", "video", true, 2));
-        chapters.add(new Chapter(2, "Topic 2: Advanced Java", "text", false, 3));
-        chapters.add(new Chapter(3, "Final Quiz", "quiz", false, 0));
+        chapters.add(new Chapter(1, "Topic 1: Introduction to Java", "video", true));
+        chapters.add(new Chapter(2, "Topic 2: Advanced Java", "text", false));
+        chapters.add(new Chapter(3, "Final Quiz", "quiz", false));
         return chapters;
     }
 }
