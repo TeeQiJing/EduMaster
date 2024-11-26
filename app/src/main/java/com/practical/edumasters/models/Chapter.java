@@ -1,44 +1,57 @@
 package com.practical.edumasters.models;
 
+import com.google.firebase.firestore.DocumentReference;
+        import com.google.firebase.firestore.DocumentSnapshot;
+
 public class Chapter {
-    private int id;
+    private DocumentReference ref;  // Change ref to DocumentReference
     private String title;
-    private String type;
-    private boolean isUnlocked;
-    private int nextLessonId;
 
-    // Constructors
-    public Chapter(int id, String title, String type, boolean isUnlocked, int nextLessonId) {
-        this.id = id;
-        this.title = title;
-        this.type = type;
+    private String id;
 
-        this.isUnlocked = isUnlocked;
-        this.nextLessonId = nextLessonId;
+    private String content;
+
+    public static Chapter fromSnapshot(DocumentSnapshot snapshot) {
+        Chapter chapter = snapshot.toObject(Chapter.class);
+        // Explicitly handle 'ref' as DocumentReference
+        DocumentReference ref = snapshot.getDocumentReference("ref");
+        if (ref != null) {
+            assert chapter != null;
+            chapter.setRef(ref);
+        }
+        return chapter;
     }
 
-    // Getters and Setters
-    public int getId() {
-        return id;
+    // Getters and setters for fields
+    public DocumentReference getRef() {
+        return ref;
+    }
+
+    public void setRef(DocumentReference ref) {
+        this.ref = ref;
     }
 
     public String getTitle() {
         return title;
     }
 
-    public String getType() {
-        return type;
+    public void setTitle(String title) {
+        this.title = title;
     }
 
-    public boolean isUnlocked() {
-        return isUnlocked;
+    public String getContent() {
+        return content;
     }
 
-    public int getNextLessonId() {
-        return nextLessonId;
+    public void setContent(String content) {
+        this.content = content;
     }
 
-    public void setUnlocked(boolean unlocked) {
-        isUnlocked = unlocked;
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 }

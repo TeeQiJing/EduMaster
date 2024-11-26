@@ -12,7 +12,8 @@ import com.practical.edumasters.fragments.ChatFragment;
 import com.practical.edumasters.fragments.CommunityFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
-import com.practical.edumasters.fragments.ChapterFragment;
+//import com.practical.edumasters.fragments.ChapterFragment;
+import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.PopularLessonCard;
 
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private CommunityFragment communityFragment;
     private LeaderboardFragment leaderboardFragment;
     private ChatFragment chatFragment;
+    private LessonFragment lessonFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +45,18 @@ public class MainActivity extends AppCompatActivity {
         // Initialize fragments
         profileFragment = new ProfileFragment();
         learnFragment = new LearnFragment();
-        ChapterFragment chapterFragment = new ChapterFragment();
+//        ChapterFragment chapterFragment = new ChapterFragment();
+         lessonFragment = new LessonFragment();
         communityFragment = new CommunityFragment();
         leaderboardFragment = new LeaderboardFragment();
         chatFragment = new ChatFragment();
 
         // Load the default fragment
+<<<<<<< HEAD
         loadFragment(learnFragment);
+=======
+        loadFragment(lessonFragment);
+>>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {

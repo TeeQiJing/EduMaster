@@ -59,7 +59,11 @@ dependencies {
     implementation("com.google.firebase:firebase-auth:23.1.0")
     implementation("com.google.firebase:firebase-storage:21.0.1")
     implementation("androidx.activity:activity:1.9.3")
+<<<<<<< HEAD
     implementation("com.google.firebase:firebase-firestore:25.1.1")
+=======
+    implementation("com.google.firebase:firebase-firestore:25.1.1") // Firestore dependency
+>>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
@@ -87,6 +91,7 @@ dependencies {
 // Firebase SDK
     implementation("com.google.firebase:firebase-core:21.1.1")
 
-//    Google Sign In
-    implementation("com.google.android.gms:play-services-auth:21.2.0")
+
+
+    implementation("com.google.android.material:material:1.12.0")
 }

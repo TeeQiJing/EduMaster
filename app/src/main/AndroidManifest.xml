@@ -25,16 +25,30 @@
 
         <activity
             android:name=".activities.LoginActivity"
+<<<<<<< HEAD
             android:exported="false"/>
 
         <activity
             android:name=".activities.MainActivity"
+=======
+>>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+<<<<<<< HEAD
+=======
+
+
+        </activity>
+        <activity
+            android:name=".activities.MainActivity"
+            android:exported="false" >
+
+
+>>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
         </activity>
 
         <meta-data
