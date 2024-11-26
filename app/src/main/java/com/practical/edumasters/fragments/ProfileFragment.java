@@ -17,34 +17,32 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.practical.edumasters.activities.LoginActivity;
-import com.practical.edumasters.models.User;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.Fragment;
-
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.practical.edumasters.activities.LoginActivity;
 import com.practical.edumasters.R;
+import com.practical.edumasters.models.User;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
 public class ProfileFragment extends Fragment {
 
     private static final int PICK_IMAGE_REQUEST = 1; // Request code for picking an image
     private ImageView avatarImageView;
     private FirebaseAuth mAuth;
-    private DatabaseReference mDatabase;
+    private FirebaseFirestore db;
     private TextView tvUsername, tvPoints, tvCourses;
-    private LinearLayout btnLogout;
+    private LinearLayout btnLogout, btnFeedback, btnSettings;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -54,7 +52,7 @@ public class ProfileFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mAuth = FirebaseAuth.getInstance();
-        mDatabase = FirebaseDatabase.getInstance().getReference().child("users");
+        db = FirebaseFirestore.getInstance();  // Use Firestore instead of Realtime Database
     }
 
     @Override
@@ -69,6 +67,8 @@ public class ProfileFragment extends Fragment {
         tvPoints = rootView.findViewById(R.id.tvPoints);
         tvCourses = rootView.findViewById(R.id.tvCourses);
         btnLogout = rootView.findViewById(R.id.btnLogout);
+        btnFeedback = rootView.findViewById(R.id.btnFeedback);
+        btnSettings = rootView.findViewById(R.id.btnSettings);
 
         // Load current avatar image if it exists
         loadUserProfile();
@@ -79,36 +79,51 @@ public class ProfileFragment extends Fragment {
         // Set up logout button click listener
         btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
+        btnFeedback.setOnClickListener(v -> {
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .setCustomAnimations(
+                            R.anim.slide_in_right,  // Animation for fragment entry
+                            R.anim.slide_out_left, // Animation for fragment exit
+                            R.anim.slide_in_left,  // Animation for returning to the fragment
+                            R.anim.slide_out_right // Animation for exiting back
+                    )
+                    .replace(R.id.fragment_container, new FeedbackFragment()) // Replace `fragment_container` with your container ID
+                    .addToBackStack(null)
+                    .commit();
+        });
+
         return rootView;
     }
 
     /**
-     * Load the current user's profile details from Firebase.
+     * Load the current user's profile details from Firestore.
      */
     private void loadUserProfile() {
         String userId = mAuth.getCurrentUser().getUid();
-        mDatabase.child(userId).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-                if (user != null) {
-                    // Display user details
-                    tvUsername.setText(user.getUsername());
-                    tvPoints.setText(user.getXp() + "\nTotal Points");
-                    tvCourses.setText(user.getCourses() != null ? user.getCourses().size() + "\nCourses Enrolled" : "0 \nCourses Enrolled");
+        DocumentReference userDocRef = db.collection("users").document(userId);  // Fetch from Firestore
 
-                    // Load avatar if it exists
-                    if (user.getAvatar() != null) {
-                        String base64Image = user.getAvatar();
-                        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
-                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                        avatarImageView.setImageBitmap(decodedByte);
+        userDocRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot documentSnapshot = task.getResult();
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    User user = documentSnapshot.toObject(User.class);
+                    if (user != null) {
+                        // Display user details
+                        tvUsername.setText(user.getUsername());
+                        tvPoints.setText(user.getXp() + "\nTotal Points");
+                        tvCourses.setText(user.getCourses() != null ? user.getCourses().size() + "\nCourses Enrolled" : "0 \nCourses Enrolled");
+
+                        // Load avatar if it exists
+                        if (user.getAvatar() != null) {
+                            String base64Image = user.getAvatar();
+                            byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                            avatarImageView.setImageBitmap(decodedByte);
+                        }
                     }
                 }
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
+            } else {
                 Toast.makeText(getContext(), "Failed to load profile", Toast.LENGTH_SHORT).show();
             }
         });
@@ -174,20 +189,22 @@ public class ProfileFragment extends Fragment {
     }
 
     /**
-     * Upload the avatar image (base64 encoded) to Firebase Realtime Database.
+     * Upload the avatar image (base64 encoded) to Firestore.
      */
     private void uploadAvatar(String base64Image) {
         String userId = mAuth.getCurrentUser().getUid();
-        mDatabase.child(userId).child("avatar").setValue(base64Image)
+        DocumentReference userDocRef = db.collection("users").document(userId);
+
+        userDocRef.update("avatar", base64Image)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Log.d("ProfileFragment", "Avatar URL updated successfully");
+                        Log.d("ProfileFragment", "Avatar updated successfully");
                         // Optionally update the UI with the new avatar
                         byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
                         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                         avatarImageView.setImageBitmap(decodedByte);
                     } else {
-                        Log.e("ProfileFragment", "Failed to update avatar URL");
+                        Log.e("ProfileFragment", "Failed to update avatar");
                         Toast.makeText(getContext(), "Failed to update avatar", Toast.LENGTH_SHORT).show();
                     }
                 });
@@ -196,7 +213,6 @@ public class ProfileFragment extends Fragment {
     /**
      * Logout the user.
      */
-
     private void showLogoutConfirmationDialog() {
         // Inflate the custom layout for the dialog
         LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -223,11 +239,10 @@ public class ProfileFragment extends Fragment {
         dialog.show();
     }
 
-
     private void logout() {
         mAuth.signOut();
         Toast.makeText(getContext(), "Logged out successfully", Toast.LENGTH_SHORT).show();
         // Optionally redirect to login screen or perform other actions
-         startActivity(new Intent(getActivity(), LoginActivity.class));
+        startActivity(new Intent(getActivity(), LoginActivity.class));
     }
 }
