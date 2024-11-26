@@ -87,10 +87,10 @@ public class LearnFragment extends Fragment {
         pCards.add(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
         pCards.add(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
 
-        CurrentLessonCardAdapter adapter = new CurrentLessonCardAdapter(requireContext());
+        CurrentLessonCardAdapter adapter = new CurrentLessonCardAdapter(requireActivity().getSupportFragmentManager());
         adapter.setCard(cards);
 
-        PopularLessonCardAdapter popularLessonCardAdapter = new PopularLessonCardAdapter();
+        PopularLessonCardAdapter popularLessonCardAdapter = new PopularLessonCardAdapter(requireActivity().getSupportFragmentManager());
         popularLessonCardAdapter.setCards(pCards);
 
         RecyclerView currentRecView = view.findViewById(R.id.current_lesson_rec_view);

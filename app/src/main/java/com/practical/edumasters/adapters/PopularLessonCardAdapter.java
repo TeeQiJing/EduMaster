@@ -1,5 +1,6 @@
 package com.practical.edumasters.adapters;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,10 +9,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.practical.edumasters.R;
+import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.PopularLessonCard;
 
 import java.util.ArrayList;
@@ -19,6 +22,12 @@ import java.util.ArrayList;
 public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLessonCardAdapter.ViewHolder> {
 
     ArrayList<PopularLessonCard> cards = new ArrayList<>();
+
+    FragmentManager fragmentManager;
+
+    public PopularLessonCardAdapter(FragmentManager fragmentManager) {
+        this.fragmentManager = fragmentManager;
+    }
 
     @NonNull
     @Override
@@ -37,7 +46,12 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
         holder.RelLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Enrolled Successfully", Snackbar.LENGTH_SHORT).show();
+                ProfileFragment profileFragment = new ProfileFragment();
+
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, profileFragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
     }

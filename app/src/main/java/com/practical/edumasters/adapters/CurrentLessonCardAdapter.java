@@ -11,20 +11,23 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.practical.edumasters.R;
+import com.practical.edumasters.fragments.LearnFragment;
+import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.CurrentLessonCard;
 
 import java.util.ArrayList;
 
 public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
     ArrayList<CurrentLessonCard> cards = new ArrayList<>();
-    Context context;
+    FragmentManager fragmentManager;
 
-    public CurrentLessonCardAdapter(Context context) {
-        this.context = context;
+    public CurrentLessonCardAdapter(FragmentManager fragmentManager) {
+        this.fragmentManager = fragmentManager;
     }
 
     @NonNull
@@ -45,15 +48,12 @@ public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesson
         holder.RLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Enrolled Successfully", Snackbar.LENGTH_INDEFINITE)
-                        .setAction("OK", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View view) {
-                                Toast.makeText(context, "Thank You!", Toast.LENGTH_LONG).show();
-                            }
-                        })
-                        .show();
+                ProfileFragment profileFragment = new ProfileFragment();
 
+                fragmentManager.beginTransaction()
+                        .replace(R.id.fragment_container, profileFragment)
+                        .addToBackStack(null)
+                        .commit();
             }
         });
     }
