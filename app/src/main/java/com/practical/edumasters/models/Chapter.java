@@ -1,6 +1,6 @@
 package com.practical.edumasters.models;
 
-public class Lesson {
+public class Chapter {
     private int id;
     private String title;
     private String type;
@@ -8,7 +8,7 @@ public class Lesson {
     private int nextLessonId;
 
     // Constructors
-    public Lesson(int id, String title, String type, boolean isUnlocked, int nextLessonId) {
+    public Chapter(int id, String title, String type, boolean isUnlocked, int nextLessonId) {
         this.id = id;
         this.title = title;
         this.type = type;
