@@ -10,14 +10,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.practical.edumasters.R;
-import com.practical.edumasters.models.Testing_model;
+import com.practical.edumasters.models.LeaderboardCard;
 
 import java.util.ArrayList;
 
-public class Testing_adapter extends RecyclerView.Adapter<Testing_adapter.MyViewHolder> {
+public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.MyViewHolder> {
     Context context;
-    ArrayList<Testing_model> testingModelArrayList;
-    public Testing_adapter(Context context, ArrayList<Testing_model> testingModelArrayList){
+    ArrayList<LeaderboardCard> testingModelArrayList;
+    public LeaderboardAdapter(Context context, ArrayList<LeaderboardCard> testingModelArrayList){
         this.context=context;
         this.testingModelArrayList=testingModelArrayList;
     }
@@ -25,7 +25,7 @@ public class Testing_adapter extends RecyclerView.Adapter<Testing_adapter.MyView
     @Override
     public MyViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(context);
-        View view=inflater.inflate(R.layout.test_recycler_row,parent,false);
+        View view=inflater.inflate(R.layout.leaderboard_card,parent,false);
         return new MyViewHolder(view);
     }
 
