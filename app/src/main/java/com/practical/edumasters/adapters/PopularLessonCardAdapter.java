@@ -1,4 +1,4 @@
-package com.practical.edumasters.activities;
+package com.practical.edumasters.adapters;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.practical.edumasters.R;
+import com.practical.edumasters.models.PopularLessonCard;
 
 import java.util.ArrayList;
 

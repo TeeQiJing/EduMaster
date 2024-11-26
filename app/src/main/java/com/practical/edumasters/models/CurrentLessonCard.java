@@ -1,4 +1,4 @@
-package com.practical.edumasters.activities;
+package com.practical.edumasters.models;
 
 public class CurrentLessonCard {
     int image;

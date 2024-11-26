@@ -13,8 +13,10 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.practical.edumasters.R;
-import com.practical.edumasters.activities.CardAdapter;
-import com.practical.edumasters.activities.LessonCard;
+import com.practical.edumasters.models.CurrentLessonCard;
+import com.practical.edumasters.adapters.CurrentLessonCardAdapter;
+import com.practical.edumasters.models.PopularLessonCard;
+import com.practical.edumasters.adapters.PopularLessonCardAdapter;
 
 import java.util.ArrayList;
 
@@ -75,21 +77,29 @@ public class LearnFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        ArrayList<LessonCard> cards = new ArrayList<>();
-        cards.add(new LessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "10"));
-        cards.add(new LessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "40"));
-        cards.add(new LessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "20"));
+        ArrayList<CurrentLessonCard> cards = new ArrayList<>();
+        cards.add(new CurrentLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "10"));
+        cards.add(new CurrentLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "40"));
+        cards.add(new CurrentLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "20"));
 
-        CardAdapter adapter = new CardAdapter(requireContext());
+        ArrayList<PopularLessonCard> pCards = new ArrayList<>();
+        pCards.add(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
+        pCards.add(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
+        pCards.add(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
+
+        CurrentLessonCardAdapter adapter = new CurrentLessonCardAdapter(requireContext());
         adapter.setCard(cards);
+
+        PopularLessonCardAdapter popularLessonCardAdapter = new PopularLessonCardAdapter();
+        popularLessonCardAdapter.setCards(pCards);
 
         RecyclerView currentRecView = view.findViewById(R.id.current_lesson_rec_view);
         currentRecView.setAdapter(adapter);
 
         RecyclerView popularRecView = view.findViewById(R.id.popular_lesson_rec_view);
-        popularRecView.setAdapter(adapter);
+        popularRecView.setAdapter(popularLessonCardAdapter);
 
         currentRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
-        popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, true));
+        popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
     }
 }
