@@ -6,6 +6,8 @@ public class CurrentLessonCard {
     String title;
     String progress;
 
+    public CurrentLessonCard() {}
+
     public CurrentLessonCard(int image, String level, String title, String progress) {
         this.image = image;
         this.level = level;

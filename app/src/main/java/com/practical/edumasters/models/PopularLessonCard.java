@@ -6,6 +6,8 @@ public class PopularLessonCard {
     String title;
     String ratings;
 
+    public PopularLessonCard() {}
+
     public PopularLessonCard(int image, String level, String title, String ratings) {
         this.image = image;
         this.level = level;

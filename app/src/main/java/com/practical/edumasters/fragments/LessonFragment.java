@@ -16,13 +16,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.ChapterAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
-import com.practical.edumasters.models.Lesson;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +34,7 @@ public class LessonFragment extends Fragment {
     private ImageView lessonImageView;
     private RecyclerView chapterRecyclerView;
     private ChapterAdapter chapterAdapter;
-    private List<Object> contentList; // List that will hold both Chapters and Quizzes
+    private List<Object> contentList; // List to hold chapters and quizzes
 
     public LessonFragment() {
         // Required empty public constructor
@@ -51,110 +50,104 @@ public class LessonFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        try {
-            View rootView = inflater.inflate(R.layout.fragment_lesson, container, false);
-            tvLessonTitle = rootView.findViewById(R.id.lessonTitle);
-            tvLessonRatingText = rootView.findViewById(R.id.lessonRatingText);
-            lessonImageView = rootView.findViewById(R.id.lessonImage);
-            chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
+        View rootView = inflater.inflate(R.layout.fragment_lesson, container, false);
 
-            chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-            chapterAdapter = new ChapterAdapter(getContext(), contentList, chapter -> {
-                // Handle click
-            });
-            chapterRecyclerView.setAdapter(chapterAdapter);
+        tvLessonTitle = rootView.findViewById(R.id.lessonTitle);
+        tvLessonRatingText = rootView.findViewById(R.id.lessonRatingText);
+        lessonImageView = rootView.findViewById(R.id.lessonImage);
+        chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
 
-            loadLessonData("F0TVbpeNRWVtUVOcAAx2");
+        chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        chapterAdapter = new ChapterAdapter(getContext(), contentList, chapter -> {
+            // Handle click event if needed
+        });
+        chapterRecyclerView.setAdapter(chapterAdapter);
 
-            return rootView;
-        } catch (Exception e) {
-            Log.e("LessonFragment", "Error in onCreateView", e);
-            return null; // Or show an error UI
-        }
+        // Replace this with the actual lessonId you want to fetch
+        String lessonId = "F0TVbpeNRWVtUVOcAAx2";
+        loadLessonData(lessonId);
+
+        return rootView;
     }
 
-
     private void loadLessonData(String lessonId) {
-        DocumentReference lessonRef = db.collection("lessons").document(lessonId);
-
-        lessonRef.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful()) {
-                DocumentSnapshot documentSnapshot = task.getResult();
-                if (documentSnapshot != null && documentSnapshot.exists()) {
-                    Lesson lesson = documentSnapshot.toObject(Lesson.class);
-                    if (lesson != null) {
-                        tvLessonTitle.setText(lesson.getTitle());
-                        tvLessonRatingText.setText(String.valueOf(lesson.getRating()));
-
-                        // Fetch the pattern from the lesson data
-                        String pattern = lesson.getPattern();
-                        if (pattern != null) {
-                            loadContentInPattern(lessonId, pattern);
-                        }
+        db.collection("lessons")
+                .document(lessonId)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        DocumentSnapshot document = task.getResult();
+                        tvLessonTitle.setText(document.getString("title"));
+                        tvLessonRatingText.setText(String.valueOf(document.getDouble("rating")));
+                        String pattern = document.getString("pattern");
+                        loadContentInPattern(lessonId, pattern);
                     } else {
-                        Log.e("LessonFragment", "Lesson data is null.");
+                        Log.e("LessonFragment", "Error fetching lesson", task.getException());
+                        Toast.makeText(getContext(), "Failed to load lesson data", Toast.LENGTH_SHORT).show();
                     }
-                }
-            } else {
-                Log.e("LessonFragment", "Failed to load lesson data: " + task.getException());
-                Toast.makeText(getContext(), "Failed to load lesson data", Toast.LENGTH_SHORT).show();
-            }
-        });
+                });
     }
 
     private void loadContentInPattern(String lessonId, String pattern) {
+        DocumentReference lessonRef = db.collection("lessons").document(lessonId);
+        Log.d("LessonFragment", "Lesson reference: " + lessonRef.getPath());  // Log the reference
+
         List<Chapter> chapters = new ArrayList<>();
         List<Quiz> quizzes = new ArrayList<>();
 
-        // Fetch chapters
-        db.collection("lessons")
-                .document(lessonId)
-                .collection("chapters")
+        // Fetch Chapters
+        db.collection("chapters")
+                .whereEqualTo("ref", lessonRef) // Use DocumentReference here
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                            Chapter chapter = documentSnapshot.toObject(Chapter.class);
-                            if (chapter != null) {
-                                chapters.add(chapter);
-                            }
+                        Log.d("LessonFragment", "Chapters fetched: " + task.getResult().size());
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            Log.d("LessonFragment", "Chapter document: " + doc.getData()); // Log the chapter document data
+                            chapters.add(Chapter.fromSnapshot(doc));
                         }
-                        // After fetching chapters, fetch quizzes
-                        loadQuizzesAndArrangeContent(chapters, quizzes, pattern);
+                        if (!quizzes.isEmpty()) {
+                            arrangeContentInPattern(chapters, quizzes, pattern);
+                        } else {
+                            Log.d("LessonFragment", "Chapters is empty after fetching.");
+                        }
                     } else {
-                        Log.e("LessonFragment", "Failed to fetch chapters: " + task.getException());
+                        Log.e("LessonFragment", "Error fetching chapters", task.getException());
                     }
                 });
 
-        // Fetch quizzes
-        db.collection("lessons")
-                .document(lessonId)
-                .collection("quizzes")
+        // Fetch Quizzes
+        db.collection("quiz")
+                .whereEqualTo("ref", lessonRef) // Use DocumentReference here
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                            Quiz quiz = documentSnapshot.toObject(Quiz.class);
-                            if (quiz != null) {
-                                quizzes.add(quiz);
-                            }
+                        Log.d("LessonFragment", "Quizzes fetched: " + task.getResult().size());
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            Log.d("LessonFragment", "Quiz document: " + doc.getData());  // Log the quiz document data
+                            quizzes.add(Quiz.fromSnapshot(doc));
                         }
-                        // After fetching quizzes, arrange content
-                        loadQuizzesAndArrangeContent(chapters, quizzes, pattern);
+                        if (!chapters.isEmpty()) {
+                            arrangeContentInPattern(chapters, quizzes, pattern);
+                        } else {
+                            Log.d("LessonFragment", "Quizzes is empty after fetching.");
+                        }
                     } else {
-                        Log.e("LessonFragment", "Failed to fetch quizzes: " + task.getException());
+                        Log.e("LessonFragment", "Error fetching quizzes", task.getException());
                     }
                 });
     }
 
+    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
+        // Ensure pattern is not null or empty
+        if (pattern == null || pattern.isEmpty()) {
+            Log.e("LessonFragment", "Invalid pattern: " + pattern);
+            return;
+        }
 
-    private void loadQuizzesAndArrangeContent(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-        int chapterIndex = 0;
-        int quizIndex = 0;
+        int chapterIndex = 0, quizIndex = 0;
 
-        // Step 2: Arrange content based on the pattern
-        for (int i = 0; i < pattern.length(); i++) {
-            char type = pattern.charAt(i);
+        for (char type : pattern.toCharArray()) {
             if (type == 'C' && chapterIndex < chapters.size()) {
                 contentList.add(chapters.get(chapterIndex++));
             } else if (type == 'Q' && quizIndex < quizzes.size()) {
@@ -162,7 +155,7 @@ public class LessonFragment extends Fragment {
             }
         }
 
-        // Notify the adapter to update the RecyclerView
         chapterAdapter.notifyDataSetChanged();
     }
+
 }

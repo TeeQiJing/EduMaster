@@ -1,6 +1,7 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -63,10 +64,15 @@ public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             ((ChapterViewHolder) holder).chapterTitle.setText(chapter.getTitle());
             ((ChapterViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_learn); // Chapter Icon
             holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(chapter));
+            Log.d("ChapterAdapter", "Chapter Binding view for position: " + position);
+
+
         } else if (holder instanceof QuizViewHolder) {
+            Log.d("ChapterAdapter", "Quiz Binding view for position: " + position);
+
             Quiz quiz = (Quiz) contentList.get(position);
             ((QuizViewHolder) holder).chapterTitle.setText(quiz.getTitle());
-            ((QuizViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_quiz); // Quiz Icon
+            ((QuizViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_apple); // Quiz Icon
             holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(quiz));
         }
     }
