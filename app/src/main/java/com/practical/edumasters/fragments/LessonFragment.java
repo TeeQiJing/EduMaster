@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,10 +30,12 @@ import java.util.List;
 public class LessonFragment extends Fragment {
 
     private FirebaseFirestore db;
+    private static final String TAG = "LessonFragment";
     private TextView tvLessonTitle;
     private TextView tvLessonRatingText;
     private ImageView lessonImageView;
     private RecyclerView chapterRecyclerView;
+    private Button btnEnroll;
     private ChapterAdapter chapterAdapter;
     private List<Object> contentList; // List to hold chapters and quizzes
 
@@ -56,16 +59,24 @@ public class LessonFragment extends Fragment {
         tvLessonRatingText = rootView.findViewById(R.id.lessonRatingText);
         lessonImageView = rootView.findViewById(R.id.lessonImage);
         chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
+        btnEnroll = rootView.findViewById(R.id.btnEnroll);
 
         chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         chapterAdapter = new ChapterAdapter(getContext(), contentList, chapter -> {
-            // Handle click event if needed
+            Toast.makeText(getContext(), "Clicked: " + chapter.toString(), Toast.LENGTH_SHORT).show();
         });
         chapterRecyclerView.setAdapter(chapterAdapter);
 
         // Replace this with the actual lessonId you want to fetch
         String lessonId = "F0TVbpeNRWVtUVOcAAx2";
         loadLessonData(lessonId);
+        btnEnroll.setOnClickListener(view -> {
+            String userId = "5yswZV2t9fNusTiJT9XFzkPzHty1";  // Retrieve this dynamically for the current user
+            int lessonIndex = 0;  // For example, lesson 1 (you can adjust this based on the current lesson)
+
+            // Mark the lesson as completed when the user clicks the button
+            markLessonAsCompleted(userId, lessonIndex);
+        });
 
         return rootView;
     }
@@ -157,5 +168,36 @@ public class LessonFragment extends Fragment {
 
         chapterAdapter.notifyDataSetChanged();
     }
+
+    private void markLessonAsCompleted(String userId, int lessonIndex) {
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        List<Object> courseList = (List<Object>) documentSnapshot.get("courses");
+
+                        if (courseList != null && lessonIndex * 2 + 1 < courseList.size()) {
+                            // Update the completion status to true
+                            courseList.set(lessonIndex * 2 + 1, true);
+
+                            // Write the updated array back to Firestore
+                            db.collection("users").document(userId)
+                                    .update("courses", courseList)
+                                    .addOnSuccessListener(aVoid -> {
+                                        Log.d("LessonUpdate", "Lesson " + lessonIndex + " marked as completed.");
+                                    })
+                                    .addOnFailureListener(e -> {
+                                        Log.e("LessonUpdate", "Failed to update lesson completion", e);
+                                    });
+                        } else {
+                            Log.e("LessonUpdate", "Invalid lesson index or course data is null.");
+                        }
+                    } else {
+                        Log.e("LessonUpdate", "User document does not exist.");
+                    }
+                })
+                .addOnFailureListener(e -> Log.e("LessonUpdate", "Failed to fetch user data", e));
+    }
+
+
 
 }

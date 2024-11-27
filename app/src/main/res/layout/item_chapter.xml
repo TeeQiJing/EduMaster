@@ -3,14 +3,15 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:background="#FFFFFF"
     android:padding="8dp">
 
     <!-- Chapter Icon inside Circle -->
     <FrameLayout
         android:id="@+id/chapterIconContainer"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginStart="16dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         android:background="@drawable/circle_background"
         app:layout_constraintStart_toStartOf="parent"
@@ -18,8 +19,8 @@
 
         <ImageView
             android:id="@+id/chapterIcon"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
+            android:layout_width="38dp"
+            android:layout_height="50dp"
             android:layout_gravity="center"
             android:src="@drawable/ic_google" />
     </FrameLayout>
@@ -29,13 +30,13 @@
     <!-- Arrow Icon -->
     <TextView
         android:id="@+id/chapterTitle"
-        android:layout_width="259dp"
-        android:layout_height="39dp"
+        android:layout_width="220dp"
+        android:layout_height="58dp"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
         android:gravity="start|center_vertical"
         android:text="Lesson Title"
         android:textSize="16sp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@+id/chapterIconContainer"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -43,9 +44,10 @@
         android:id="@+id/arrowIcon"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_next"
+        android:layout_marginEnd="8dp"
+        android:background="@android:color/transparent"
+        android:src="@mipmap/ic_next"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 

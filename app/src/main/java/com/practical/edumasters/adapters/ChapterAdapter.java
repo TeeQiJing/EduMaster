@@ -62,7 +62,7 @@ public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         if (holder instanceof ChapterViewHolder) {
             Chapter chapter = (Chapter) contentList.get(position);
             ((ChapterViewHolder) holder).chapterTitle.setText(chapter.getTitle());
-            ((ChapterViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_learn); // Chapter Icon
+            ((ChapterViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_chapter); // Chapter Icon
             holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(chapter));
             Log.d("ChapterAdapter", "Chapter Binding view for position: " + position);
 
@@ -72,7 +72,7 @@ public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             Quiz quiz = (Quiz) contentList.get(position);
             ((QuizViewHolder) holder).chapterTitle.setText(quiz.getTitle());
-            ((QuizViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_apple); // Quiz Icon
+            ((QuizViewHolder) holder).chapterIcon.setImageResource(R.drawable.ic_quiz); // Quiz Icon
             holder.itemView.setOnClickListener(v -> chapterClickListener.onChapterClick(quiz));
         }
     }
