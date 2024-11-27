@@ -26,10 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
-<<<<<<< HEAD
-=======
 
->>>>>>> 1c9a2eb0d5d68f9a993be94854d0062ad706b594
 import com.practical.edumasters.fragments.LearnFragment;
 import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
@@ -159,12 +156,9 @@ import java.util.Map;
 //
 //}
 
-<<<<<<< HEAD
 
-public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder> {
-=======
+
 public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
->>>>>>> 42bab3598f64f74bb20e98c7fd8a03f360648a9a
     ArrayList<CurrentLessonCard> cards = new ArrayList<>();
     FragmentManager fragmentManager;
     FirebaseFirestore db;
@@ -182,7 +176,6 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-<<<<<<< HEAD
         CurrentLessonCard currentCard = cards.get(position);
         Log.d("CurrentLessonCardAdapter", "Binding card: " + currentCard.getLessonId() + ", Progress: " + currentCard.getProgress());
 
@@ -250,28 +243,8 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
             default:
                 return R.drawable.ic_launcher_background;  // Default image if no match found
         }
-=======
-        holder.lessonLevel.setText(cards.get(position).getLevel());
-        holder.imageView.setImageResource(Integer.valueOf(cards.get(position).getImage()));
-        holder.lessonTitle.setText(cards.get(position).getTitle());
-        holder.progressBar.setProgress(Integer.valueOf(cards.get(position).getProgress()));
-        holder.progress.setText(cards.get(position).getProgress() + "%");
-<<<<<<< HEAD
-        holder.RLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LessonFragment lessonFragment = new LessonFragment();
 
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, lessonFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
-=======
 
->>>>>>> 1c9a2eb0d5d68f9a993be94854d0062ad706b594
->>>>>>> 42bab3598f64f74bb20e98c7fd8a03f360648a9a
     }
 
     @Override
@@ -306,3 +279,4 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
         }
     }
 }
+
