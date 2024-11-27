@@ -2,6 +2,8 @@ package com.practical.edumasters.fragments;
 
 
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -9,96 +11,109 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Base64;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.google.firebase.Firebase;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
 import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.LeaderboardAdapter;
 import com.practical.edumasters.models.LeaderboardCard;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link LeaderboardFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
 public class LeaderboardFragment extends Fragment {
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
-
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
 
     public LeaderboardFragment() {
         // Required empty public constructor
     }
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment LeaderBoard.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static LeaderboardFragment newInstance(String param1, String param2) {
-        LeaderboardFragment fragment = new LeaderboardFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
-    }
-    ArrayList<LeaderboardCard> testingModelArrayList=new ArrayList<>();
 
+    ArrayList<LeaderboardCard> testingModelArrayList=new ArrayList<>();
+    FirebaseAuth fAuth;
+    FirebaseFirestore db;
+    ArrayList<String> nameList=new ArrayList<>();
+    ArrayList<String> markList=new ArrayList<>();
+    ArrayList<Bitmap> avatarList=new ArrayList<>();
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-
-        }
-
+        fAuth=FirebaseAuth.getInstance();
+        db=FirebaseFirestore.getInstance();
     }
-    private void setUpTestingmodel(){
-        String[] testing_name=getResources().getStringArray(R.array.testing_name);
-        String[] testing_mark=getResources().getStringArray(R.array.testing_mark);
-        for(int i=0;i<testing_name.length;i++){
-            testingModelArrayList.add(new LeaderboardCard(testing_name[i],testing_mark[i]));
-        }
+    private void setUpTestingmodel(final View view){
+        db.collection("users").get().addOnCompleteListener(task -> {
+            if(task.isSuccessful()){
+                testingModelArrayList.clear();
+                nameList.clear();
+                markList.clear();
+                for(QueryDocumentSnapshot document: task.getResult()){
+                    String username=document.getString("username");
+                    String mark=String.valueOf(document.getLong("xp"));
+                    nameList.add(username);
+                    markList.add(mark);
+                    if (document.getString("avatar") != null) {
+                        String base64Image = document.getString("avatar");
+                        byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
+                        Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                        avatarList.add(decodedByte);
+                    }else{
+                        avatarList.add(null);
+                    }
+                }
+                for(int i=0;i<nameList.size();i++){
+                    testingModelArrayList.add(new LeaderboardCard(nameList.get(i),markList.get(i),avatarList.get(i)));
+                }
+                Collections.sort(testingModelArrayList);
+                updateUI(view);
+            }else{
+                Log.e("FireStore","Error getting documents: ",task.getException());
+            }
+        });
     }
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_leaderboard, container, false);
+        View view=inflater.inflate(R.layout.fragment_leaderboard,container,false);
+        setUpTestingmodel(view);
+        return view;
     }
-    @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState){
-        setUpTestingmodel();
+
+    public void updateUI(View view){
         TextView firstName=view.findViewById(R.id.firstName);
         TextView firstMark=view.findViewById(R.id.firstMark);
         TextView secondName=view.findViewById(R.id.secondName);
         TextView secondMark=view.findViewById(R.id.secondMark);
         TextView thirdName=view.findViewById(R.id.thirdName);
         TextView thirdMark=view.findViewById(R.id.thirdMark);
+        ImageView first_avatar=view.findViewById(R.id.first_avatar);
+        ImageView second_avatar=view.findViewById(R.id.second_avatar);
+        ImageView third_avatar=view.findViewById(R.id.third_avatar);
         TextView []name={firstName,secondName,thirdName};
         TextView []mark={firstMark,secondMark,thirdMark};
+        ImageView []avatar={first_avatar,second_avatar,third_avatar};
         for(int i=0;i<testingModelArrayList.size()&&i<3;i++) {
             name[i].setText(testingModelArrayList.get(i).getTesting_name());
             mark[i].setText(testingModelArrayList.get(i).getTesting_mark()+" pts");
+            if(testingModelArrayList.get(i).getTesting_avatar()!=null) avatar[i].setImageBitmap(testingModelArrayList.get(i).getTesting_avatar());
+            else avatar[i].setImageResource(R.drawable.ic_profile);
         }
         RecyclerView recyclerView=view.findViewById(R.id.test_recycler);
         LeaderboardAdapter adapter=new LeaderboardAdapter(requireContext(),testingModelArrayList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
+
 }

@@ -1,9 +1,11 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.media.Image;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -37,6 +39,8 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
             holder.test_mark.setText(testingModelArrayList.get(actualPosition).getTesting_mark()+" pts");
             int rankingShow=position+4;
             holder.ranking.setText(String.valueOf(rankingShow));
+            if(testingModelArrayList.get(actualPosition).getTesting_avatar()!=null) holder.test_avatar.setImageBitmap(testingModelArrayList.get(actualPosition).getTesting_avatar());
+            else holder.test_avatar.setImageResource(R.drawable.ic_profile);
         }
     }
 
@@ -46,11 +50,13 @@ public class LeaderboardAdapter extends RecyclerView.Adapter<LeaderboardAdapter.
     }
     public static class MyViewHolder extends RecyclerView.ViewHolder{
         TextView test_name,test_mark,ranking;
+        ImageView test_avatar;
         public MyViewHolder(@NonNull View itemView) {
             super(itemView);
             test_name=itemView.findViewById(R.id.test_name);
             test_mark=itemView.findViewById(R.id.test_mark);
             ranking=itemView.findViewById(R.id.ranking);
+            test_avatar=itemView.findViewById(R.id.user_avatar);
         }
     }
 }
