@@ -71,7 +71,7 @@ public class LessonFragment extends Fragment {
         String lessonId = "F0TVbpeNRWVtUVOcAAx2";
         loadLessonData(lessonId);
         btnEnroll.setOnClickListener(view -> {
-            String userId = "5yswZV2t9fNusTiJT9XFzkPzHty1";  // Retrieve this dynamically for the current user
+            String userId = "gykOwUi0wQZrznz7TanZQ1kuswo1";  // Retrieve this dynamically for the current user
             int lessonIndex = 0;  // For example, lesson 1 (you can adjust this based on the current lesson)
 
             // Mark the lesson as completed when the user clicks the button
