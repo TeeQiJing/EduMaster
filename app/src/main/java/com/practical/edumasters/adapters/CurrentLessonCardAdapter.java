@@ -25,8 +25,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
-import com.practical.edumasters.fragments.ChapterFragment;
 import com.practical.edumasters.fragments.LearnFragment;
+import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.CurrentLessonCard;
 
@@ -59,10 +59,10 @@ public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesson
         holder.RLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ChapterFragment chapterFragment = new ChapterFragment();
+                LessonFragment lessonFragment = new LessonFragment();
 
                 fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, chapterFragment)
+                        .replace(R.id.fragment_container, lessonFragment)
                         .addToBackStack(null)
                         .commit();
             }

@@ -1,6 +1,7 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,7 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
-import com.practical.edumasters.fragments.ChapterFragment;
+import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.PopularLessonCard;
@@ -48,17 +49,14 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
         holder.RelLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ChapterFragment chapterFragment = new ChapterFragment();
+                LessonFragment lessonFragment = new LessonFragment();
 
                 fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, chapterFragment)
+                        .replace(R.id.fragment_container, lessonFragment)
                         .addToBackStack(null)
                         .commit();
             }
         });
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
     }
 
     @Override
@@ -69,11 +67,6 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
     public void setCards(ArrayList<PopularLessonCard> cards) {
         this.cards = cards;
         notifyDataSetChanged();
-    }
-
-    public void loadPopularLessonData(PopularLessonCard popularLessonCard) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("popular_lesson").document().set(popularLessonCard);
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

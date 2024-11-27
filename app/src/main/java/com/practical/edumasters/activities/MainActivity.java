@@ -33,10 +33,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        LearnFragment learnFragment1 = new LearnFragment();
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
 
         // Initialize binding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -52,11 +48,8 @@ public class MainActivity extends AppCompatActivity {
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-<<<<<<< HEAD
         loadFragment(learnFragment);
-=======
-        loadFragment(lessonFragment);
->>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
+//        loadFragment(lessonFragment);
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
