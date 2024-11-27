@@ -2,6 +2,7 @@ package com.practical.edumasters.adapters;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,13 +16,23 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
+
 import com.practical.edumasters.fragments.LearnFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.CurrentLessonCard;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
     ArrayList<CurrentLessonCard> cards = new ArrayList<>();
@@ -31,7 +42,6 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
         this.fragmentManager = fragmentManager;
     }
 
-    @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.current_lesson_card, parent, false);
@@ -42,21 +52,11 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.lessonLevel.setText(cards.get(position).getLevel());
-        holder.imageView.setImageResource(cards.get(position).getImage());
+        holder.imageView.setImageResource(Integer.valueOf(cards.get(position).getImage()));
         holder.lessonTitle.setText(cards.get(position).getTitle());
         holder.progressBar.setProgress(Integer.valueOf(cards.get(position).getProgress()));
         holder.progress.setText(cards.get(position).getProgress() + "%");
-//        holder.RLayout.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                LessonFragment lessonFragment = new LessonFragment()
-//
-//                fragmentManager.beginTransaction()
-//                        .replace(R.id.fragment_container, lessonFragment)
-//                        .addToBackStack(null)
-//                        .commit();
-//            }
-//        });
+
     }
 
     @Override
