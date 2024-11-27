@@ -23,7 +23,7 @@ import com.practical.edumasters.models.CurrentLessonCard;
 
 import java.util.ArrayList;
 
-public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
+public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
     ArrayList<CurrentLessonCard> cards = new ArrayList<>();
     FragmentManager fragmentManager;
 
