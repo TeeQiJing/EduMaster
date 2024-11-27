@@ -10,22 +10,29 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
+import com.practical.edumasters.activities.MainActivity;
 import com.practical.edumasters.adapters.ChapterAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class LessonFragment extends Fragment {
 
@@ -33,9 +40,11 @@ public class LessonFragment extends Fragment {
     private static final String TAG = "LessonFragment";
     private TextView tvLessonTitle;
     private TextView tvLessonRatingText;
-    private ImageView lessonImageView;
+    private ImageView lessonImageView, btnBack;
     private RecyclerView chapterRecyclerView;
     private Button btnEnroll;
+
+    private FirebaseAuth mAuth;
     private ChapterAdapter chapterAdapter;
     private List<Object> contentList; // List to hold chapters and quizzes
 
@@ -48,6 +57,7 @@ public class LessonFragment extends Fragment {
         super.onCreate(savedInstanceState);
         db = FirebaseFirestore.getInstance();
         contentList = new ArrayList<>();
+        mAuth = FirebaseAuth.getInstance();
     }
 
     @Override
@@ -60,6 +70,7 @@ public class LessonFragment extends Fragment {
         lessonImageView = rootView.findViewById(R.id.lessonImage);
         chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
         btnEnroll = rootView.findViewById(R.id.btnEnroll);
+        btnBack = rootView.findViewById(R.id.btnBack);  // Initialize btnBack
 
         chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         chapterAdapter = new ChapterAdapter(getContext(), contentList, chapter -> {
@@ -68,28 +79,57 @@ public class LessonFragment extends Fragment {
         chapterRecyclerView.setAdapter(chapterAdapter);
 
         // Replace this with the actual lessonId you want to fetch
-        String lessonId = "F0TVbpeNRWVtUVOcAAx2";
+        String lessonId = "OwNi8xTsohGN7T8dc8Jh";
         loadLessonData(lessonId);
-        btnEnroll.setOnClickListener(view -> {
-            String userId = "gykOwUi0wQZrznz7TanZQ1kuswo1";  // Retrieve this dynamically for the current user
-            int lessonIndex = 0;  // For example, lesson 1 (you can adjust this based on the current lesson)
 
-            // Mark the lesson as completed when the user clicks the button
-            markLessonAsCompleted(userId, lessonIndex);
+        btnEnroll.setOnClickListener(view -> {
+            String userId = mAuth.getCurrentUser().getUid();  // Retrieve this dynamically for the current user
+
+            enrollInLesson(userId,lessonId);
         });
+
+        // Set the Back button listener
+        btnBack.setOnClickListener(v -> navigateBackToLearnFragment());
 
         return rootView;
     }
 
+    private void navigateBackToLearnFragment() {
+        FragmentManager fragmentManager = getActivity() != null ? getActivity().getSupportFragmentManager() : null;
+        if (fragmentManager != null) {
+            // Replace current fragment with LearnFragment
+            fragmentManager.beginTransaction()
+                    .replace(R.id.fragment_container, new LearnFragment()) // Replace fragment container with LearnFragment
+                    .addToBackStack(null) // Add to back stack to enable navigation back
+                    .commitAllowingStateLoss(); // Avoid state loss errors
+        }
+    }
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Set up your fragment (lesson details) view here
+
+        // Handle back press explicitly to navigate to LearnFragment
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                // Navigate back to LearnFragment
+                getParentFragmentManager().popBackStack();
+            }
+        });
+    }
+
+
     private void loadLessonData(String lessonId) {
-        db.collection("lessons")
+        db.collection("total_lesson")
                 .document(lessonId)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && task.getResult() != null) {
                         DocumentSnapshot document = task.getResult();
                         tvLessonTitle.setText(document.getString("title"));
-                        tvLessonRatingText.setText(String.valueOf(document.getDouble("rating")));
+                        tvLessonRatingText.setText(document.getString("rating"));
                         String pattern = document.getString("pattern");
                         loadContentInPattern(lessonId, pattern);
                     } else {
@@ -100,7 +140,7 @@ public class LessonFragment extends Fragment {
     }
 
     private void loadContentInPattern(String lessonId, String pattern) {
-        DocumentReference lessonRef = db.collection("lessons").document(lessonId);
+        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
         Log.d("LessonFragment", "Lesson reference: " + lessonRef.getPath());  // Log the reference
 
         List<Chapter> chapters = new ArrayList<>();
@@ -169,34 +209,44 @@ public class LessonFragment extends Fragment {
         chapterAdapter.notifyDataSetChanged();
     }
 
-    private void markLessonAsCompleted(String userId, int lessonIndex) {
-        db.collection("users").document(userId).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        List<Object> courseList = (List<Object>) documentSnapshot.get("courses");
 
-                        if (courseList != null && lessonIndex * 2 + 1 < courseList.size()) {
-                            // Update the completion status to true
-                            courseList.set(lessonIndex * 2 + 1, true);
+    private void enrollInLesson(String userId, String lessonId) {
+        // Create a reference to the current_lesson collection
+        CollectionReference currentLessonRef = db.collection("current_lesson");
 
-                            // Write the updated array back to Firestore
-                            db.collection("users").document(userId)
-                                    .update("courses", courseList)
-                                    .addOnSuccessListener(aVoid -> {
-                                        Log.d("LessonUpdate", "Lesson " + lessonIndex + " marked as completed.");
-                                    })
-                                    .addOnFailureListener(e -> {
-                                        Log.e("LessonUpdate", "Failed to update lesson completion", e);
-                                    });
-                        } else {
-                            Log.e("LessonUpdate", "Invalid lesson index or course data is null.");
-                        }
-                    } else {
-                        Log.e("LessonUpdate", "User document does not exist.");
+        // Create references to the user and lesson documents
+        DocumentReference userRef = db.collection("users").document(userId);
+        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+
+        // Create the data to insert into current_lesson collection
+        Map<String, Object> currentLessonData = new HashMap<>();
+        currentLessonData.put("userId", userRef); // Reference to user
+        currentLessonData.put("lessonId", lessonRef); // Reference to lesson
+        currentLessonData.put("progress", "0"); // Reference to lesson
+
+        // Add the data to Firestore
+        currentLessonRef.add(currentLessonData)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d("EnrollLesson", "Enrolled successfully with ID: " + documentReference.getId());
+                    Toast.makeText(getContext(), "Enrolled successfully!", Toast.LENGTH_SHORT).show();
+
+                    // Navigate to LearnFragment (Home Page)
+                    FragmentManager fragmentManager = getActivity() != null ? getActivity().getSupportFragmentManager() : null;
+                    if (fragmentManager != null) {
+                        fragmentManager.beginTransaction()
+                                .replace(R.id.fragment_container, new LearnFragment()) // Replace fragment container with LearnFragment
+                                .addToBackStack(null) // Add to back stack to enable navigation back
+                                .commitAllowingStateLoss(); // Avoid state loss errors
                     }
                 })
-                .addOnFailureListener(e -> Log.e("LessonUpdate", "Failed to fetch user data", e));
+                .addOnFailureListener(e -> {
+                    Log.e("EnrollLesson", "Failed to enroll in lesson", e);
+                    Toast.makeText(getContext(), "Enrollment failed!", Toast.LENGTH_SHORT).show();
+                });
     }
+
+
+
 
 
 

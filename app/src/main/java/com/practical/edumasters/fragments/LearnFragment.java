@@ -93,6 +93,7 @@ public class LearnFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         db = FirebaseFirestore.getInstance();
+        Log.d("haha", String.valueOf(R.drawable.gradient_background));
 
         //Current Lesson
         currentLessonCards = new ArrayList<>();

@@ -1,42 +1,19 @@
 package com.practical.edumasters.models;
 
+import com.google.firebase.firestore.DocumentReference;
+
 public class CurrentLessonCard {
-    int image;
-    String level;
-    String title;
-    String progress;
+    private DocumentReference lessonId;  // Store as DocumentReference
+    private String progress;
+    private DocumentReference userId;  // Store as DocumentReference
 
-    public CurrentLessonCard() {}
-
-    public CurrentLessonCard(int image, String level, String title, String progress) {
-        this.image = image;
-        this.level = level;
-        this.title = title;
-        this.progress = progress;
+    // Getters and Setters
+    public DocumentReference getLessonId() {
+        return lessonId;
     }
 
-    public int getImage() {
-        return image;
-    }
-
-    public void setImage(int image) {
-        this.image = image;
-    }
-
-    public String getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        this.level = level;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
+    public void setLessonId(DocumentReference lessonId) {
+        this.lessonId = lessonId;
     }
 
     public String getProgress() {
@@ -45,5 +22,13 @@ public class CurrentLessonCard {
 
     public void setProgress(String progress) {
         this.progress = progress;
+    }
+
+    public DocumentReference getUserId() {
+        return userId;
+    }
+
+    public void setUserId(DocumentReference userId) {
+        this.userId = userId;
     }
 }
