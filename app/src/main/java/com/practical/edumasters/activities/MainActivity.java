@@ -52,11 +52,9 @@ public class MainActivity extends AppCompatActivity {
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-<<<<<<< HEAD
-        loadFragment(learnFragment);
-=======
+
         loadFragment(lessonFragment);
->>>>>>> 995e253c5c1604bd0385f10bcb6fd15696f7da4a
+
 
         // Handle BottomNavigation item clicks
         binding.bottomNavigation.setOnItemSelectedListener(item -> {

@@ -25,7 +25,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
-import com.practical.edumasters.fragments.ChapterFragment;
+
 import com.practical.edumasters.fragments.LearnFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.CurrentLessonCard;
@@ -56,17 +56,7 @@ public class CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesson
         holder.lessonTitle.setText(cards.get(position).getTitle());
         holder.progressBar.setProgress(Integer.valueOf(cards.get(position).getProgress()));
         holder.progress.setText(cards.get(position).getProgress() + "%");
-        holder.RLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ChapterFragment chapterFragment = new ChapterFragment();
 
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, chapterFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
     }
 
     @Override

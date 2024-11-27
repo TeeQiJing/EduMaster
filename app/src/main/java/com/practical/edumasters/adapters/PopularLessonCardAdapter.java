@@ -15,7 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
-import com.practical.edumasters.fragments.ChapterFragment;
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.PopularLessonCard;
@@ -45,17 +44,7 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
         holder.level.setText(cards.get(position).getLevel());
         holder.title.setText(cards.get(position).getTitle());
         holder.ratings.setText(cards.get(position).getRatings());
-        holder.RelLayout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ChapterFragment chapterFragment = new ChapterFragment();
 
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, chapterFragment)
-                        .addToBackStack(null)
-                        .commit();
-            }
-        });
 //        loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
 //        loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
 //        loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
