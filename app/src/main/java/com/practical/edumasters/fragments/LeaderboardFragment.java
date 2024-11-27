@@ -59,6 +59,7 @@ public class LeaderboardFragment extends Fragment {
                 testingModelArrayList.clear();
                 nameList.clear();
                 markList.clear();
+                avatarList.clear();
                 for(QueryDocumentSnapshot document: task.getResult()){
                     String username=document.getString("username");
                     String mark=String.valueOf(document.getLong("xp"));

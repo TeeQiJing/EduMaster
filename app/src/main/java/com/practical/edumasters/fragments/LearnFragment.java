@@ -53,8 +53,14 @@ public class LearnFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         db = FirebaseFirestore.getInstance();
+<<<<<<< HEAD
         mAuth = FirebaseAuth.getInstance();
 
+=======
+        Log.d("haha", String.valueOf(R.drawable.gradient_background));
+
+        //Current Lesson
+>>>>>>> 42bab3598f64f74bb20e98c7fd8a03f360648a9a
         currentLessonCards = new ArrayList<>();
         currentLessonCardAdapter = new CurrentLessonCardAdapter(requireActivity().getSupportFragmentManager());
         currentRecView = view.findViewById(R.id.current_lesson_rec_view);
