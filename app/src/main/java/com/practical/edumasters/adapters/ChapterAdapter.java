@@ -28,7 +28,10 @@ public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public interface OnChapterClickListener {
         void onChapterClick(Object chapterOrQuiz);
+
     }
+
+
 
     public ChapterAdapter(Context context, List<Object> contentList, OnChapterClickListener listener) {
         this.context = context;
