@@ -1,7 +1,10 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,6 +38,7 @@ import com.practical.edumasters.models.CurrentLessonCard;
 import com.practical.edumasters.models.PopularLessonCard;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLessonCardAdapter.ViewHolder> {
 
@@ -96,7 +100,29 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
                         String rating = doc.getString("rating");
                         String title = doc.getString("title");
 
-                        holder.image.setImageResource(getImageResource(image));
+//                        holder.image.setImageResource(getImageResource(image));
+
+
+                        switch (Objects.requireNonNull(title)){
+                            case "GitHub":
+                holder.image.setImageResource(R.drawable.ic_github);
+                                break;
+                            case "Java":
+                                holder.image.setImageResource(R.drawable.ic_java);
+                                break;
+                            case "HTML & CSS":
+                                holder.image.setImageResource(R.drawable.ic_html);
+                                break;
+
+                            case "Python":
+                                holder.image.setImageResource(R.drawable.ic_python);
+                                break;
+                            case "UI UX Design":
+                                holder.image.setImageResource(R.drawable.ic_uiux);
+                                break;
+                            default:
+                                holder.image.setImageResource(R.drawable.ic_avatar);
+                        }
                         holder.level.setText(level);
                         holder.ratings.setText(rating);
                         holder.title.setText(title);
@@ -108,6 +134,9 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
             }
         });
     }
+
+
+
 
     private int getImageResource(String imageName) {
         switch (imageName) {

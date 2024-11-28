@@ -255,7 +255,13 @@
 
 package com.practical.edumasters.fragments;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -282,17 +288,22 @@ import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.ChapterAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
+import com.practical.edumasters.models.User;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class LessonFragment extends Fragment {
 
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private static final String TAG = "LessonFragment";
+
 
     private TextView tvLessonTitle;
     private TextView tvLessonRatingText;
@@ -355,6 +366,8 @@ public class LessonFragment extends Fragment {
 
         btnBack.setOnClickListener(v -> navigateBackToLearnFragment());
 
+
+
         return rootView;
     }
 
@@ -387,12 +400,36 @@ public class LessonFragment extends Fragment {
                         tvLessonTitle.setText(document.getString("title"));
                         tvLessonRatingText.setText(document.getString("rating"));
                         String pattern = document.getString("pattern");
+                        loadLessonImage(Objects.requireNonNull(document.getString("title")));
                         loadContentInPattern(lessonId, pattern);
                     } else {
                         Log.e(TAG, "Error fetching lesson", task.getException());
                         Toast.makeText(getContext(), "Failed to load lesson data", Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void loadLessonImage(String title){
+        switch (title){
+            case "GitHub":
+                lessonImageView.setImageResource(R.drawable.ic_github);
+                break;
+            case "Java":
+                lessonImageView.setImageResource(R.drawable.ic_java);
+                break;
+            case "HTML & CSS":
+                lessonImageView.setImageResource(R.drawable.ic_html);
+                break;
+
+            case "Python":
+                lessonImageView.setImageResource(R.drawable.ic_python);
+                break;
+            case "UI UX Design":
+                lessonImageView.setImageResource(R.drawable.ic_uiux);
+                break;
+            default:
+                lessonImageView.setImageResource(R.drawable.ic_avatar);
+        }
     }
 
     private void loadContentInPattern(String lessonId, String pattern) {
@@ -481,5 +518,10 @@ public class LessonFragment extends Fragment {
                     .commitAllowingStateLoss();
         }
     }
+
+
+
+
 }
+
 

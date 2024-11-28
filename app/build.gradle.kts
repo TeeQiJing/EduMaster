@@ -96,4 +96,6 @@ dependencies {
 
     implementation("com.github.bumptech.glide:glide:4.15.1") // or the latest version
     annotationProcessor("com.github.bumptech.glide:compiler:4.15.1")// Glide compiler
+    implementation("com.caverock:androidsvg:1.4")
+
 }

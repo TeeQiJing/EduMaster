@@ -1,8 +1,11 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,6 +37,7 @@ import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.CurrentLessonCard;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLessonCardAdapter.ViewHolder>{
     ArrayList<CurrentLessonCard> cards = new ArrayList<>();
@@ -93,19 +97,37 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
                             // Fetch all lesson details
                             String title = document.getString("title");
                             String level = document.getString("level");
-                            String image = document.getString("image");
+
                             String rating = document.getString("rating");
                             String pattern = document.getString("pattern");
 
                             // Add more debug logs for fields
-                            Log.d("CurrentLessonCardAdapter", "Fetched lesson details: Title: " + title + ", Level: " + level + ", Image: " + image + ", Rating: " + rating + ", Pattern: " + pattern);
+                            Log.d("CurrentLessonCardAdapter", "Fetched lesson details: Title: " + title + ", Level: " + level + ", Rating: " + rating + ", Pattern: " + pattern);
 
                             // Set the fetched values to the UI
                             holder.lessonLevel.setText(level);
                             holder.lessonTitle.setText(title);
 
+                            switch (Objects.requireNonNull(title)){
+                                case "GitHub":
+                                    holder.imageView.setImageResource(R.drawable.ic_github);
+                                    break;
+                                case "Java":
+                                    holder.imageView.setImageResource(R.drawable.ic_java);
+                                    break;
+                                case "HTML & CSS":
+                                    holder.imageView.setImageResource(R.drawable.ic_html);
+                                    break;
 
-                            holder.imageView.setImageResource(getImageResource(image));  // Handle the image resource
+                                case "Python":
+                                    holder.imageView.setImageResource(R.drawable.ic_python);
+                                    break;
+                                case "UI UX Design":
+                                    holder.imageView.setImageResource(R.drawable.ic_uiux);
+                                    break;
+                                default:
+                                    holder.imageView.setImageResource(R.drawable.ic_avatar);
+                            }
 
                             // Set progress based on the current card progress value
                             if (currentCard.getProgress() != null) {
