@@ -1,28 +1,31 @@
 package com.practical.edumasters.models;
 
 import com.google.firebase.firestore.DocumentReference;
-        import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
+
+import java.util.List;
+import java.util.Map;
 
 public class Chapter {
-    private DocumentReference ref;  // Change ref to DocumentReference
+
+    private DocumentReference ref;
     private String title;
-
     private String id;
+    private List<Map<String, Object>> content; // List to hold content blocks
 
-    private String content;
-
+    // Static method to create a Chapter object from Firestore snapshot
     public static Chapter fromSnapshot(DocumentSnapshot snapshot) {
-        Chapter chapter = snapshot.toObject(Chapter.class);
-        // Explicitly handle 'ref' as DocumentReference
-        DocumentReference ref = snapshot.getDocumentReference("ref");
+        Chapter chapter = snapshot.toObject(Chapter.class); // Automatically populate fields
+        DocumentReference ref = snapshot.getDocumentReference("ref"); // Get the reference field
         if (ref != null) {
             assert chapter != null;
-            chapter.setRef(ref);
+            chapter.setRef(ref); // Set the ref field if it's not null
         }
+        chapter.setId(snapshot.getId()); // Set the Firestore document ID
         return chapter;
     }
 
-    // Getters and setters for fields
+    // Getters and setters
     public DocumentReference getRef() {
         return ref;
     }
@@ -39,11 +42,11 @@ public class Chapter {
         this.title = title;
     }
 
-    public String getContent() {
+    public List<Map<String, Object>> getContent() {
         return content;
     }
 
-    public void setContent(String content) {
+    public void setContent(List<Map<String, Object>> content) {
         this.content = content;
     }
 

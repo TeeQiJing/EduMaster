@@ -10,6 +10,7 @@ import com.practical.edumasters.R;
 import com.practical.edumasters.databinding.ActivityMainBinding;
 import com.practical.edumasters.fragments.ChatFragment;
 import com.practical.edumasters.fragments.CommunityFragment;
+import com.practical.edumasters.fragments.ContentFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
 //import com.practical.edumasters.fragments.ChapterFragment;
@@ -28,15 +29,12 @@ public class MainActivity extends AppCompatActivity {
     private LeaderboardFragment leaderboardFragment;
     private ChatFragment chatFragment;
     private LessonFragment lessonFragment;
+    private ContentFragment contentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-//        LearnFragment learnFragment1 = new LearnFragment();
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
-//        learnFragment1.loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
 
         // Initialize binding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
@@ -46,14 +44,14 @@ public class MainActivity extends AppCompatActivity {
         profileFragment = new ProfileFragment();
         learnFragment = new LearnFragment();
 //        ChapterFragment chapterFragment = new ChapterFragment();
-         lessonFragment = new LessonFragment();
+        lessonFragment = new LessonFragment();
         communityFragment = new CommunityFragment();
         leaderboardFragment = new LeaderboardFragment();
         chatFragment = new ChatFragment();
+        contentFragment = new ContentFragment();
 
         // Load the default fragment
-
-        loadFragment(lessonFragment);
+        loadFragment(contentFragment);
 
 
         // Handle BottomNavigation item clicks
