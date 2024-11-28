@@ -10,6 +10,7 @@ import com.practical.edumasters.R;
 import com.practical.edumasters.databinding.ActivityMainBinding;
 import com.practical.edumasters.fragments.ChatFragment;
 import com.practical.edumasters.fragments.CommunityFragment;
+import com.practical.edumasters.fragments.ContentFragment;
 import com.practical.edumasters.fragments.LeaderboardFragment;
 import com.practical.edumasters.fragments.LearnFragment;
 //import com.practical.edumasters.fragments.ChapterFragment;
@@ -28,6 +29,7 @@ public class MainActivity extends AppCompatActivity {
     private LeaderboardFragment leaderboardFragment;
     private ChatFragment chatFragment;
     private LessonFragment lessonFragment;
+    private ContentFragment contentFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         profileFragment = new ProfileFragment();
         learnFragment = new LearnFragment();
 //        ChapterFragment chapterFragment = new ChapterFragment();
+        contentFragment = new ContentFragment();
          lessonFragment = new LessonFragment();
         communityFragment = new CommunityFragment();
         leaderboardFragment = new LeaderboardFragment();
@@ -53,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Load the default fragment
 
-        loadFragment(lessonFragment);
+        loadFragment(contentFragment);
 
 
         // Handle BottomNavigation item clicks

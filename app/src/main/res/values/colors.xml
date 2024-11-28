@@ -13,5 +13,6 @@
     <color name="gray">#BDBDBD</color>
     <color name="purple_500">#6200EE</color>
     <color name="blue">#1E88E5</color>
+    <color name="codeBackground">#4E4241</color>
 
 </resources>
