@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
         chatFragment = new ChatFragment();
 
         // Load the default fragment
-        loadFragment(lessonFragment);
+        loadFragment(learnFragment);
 
 
         // Handle BottomNavigation item clicks
