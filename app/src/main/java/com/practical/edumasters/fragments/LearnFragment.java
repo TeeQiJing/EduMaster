@@ -13,6 +13,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -28,6 +30,7 @@ import com.practical.edumasters.models.CurrentLessonCard;
 import com.practical.edumasters.adapters.CurrentLessonCardAdapter;
 import com.practical.edumasters.models.PopularLessonCard;
 import com.practical.edumasters.adapters.PopularLessonCardAdapter;
+import com.practical.edumasters.models.User;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
@@ -42,6 +45,9 @@ public class LearnFragment extends Fragment {
     private PopularLessonCardAdapter popularLessonCardAdapter;
     private RecyclerView currentRecView;
     private RecyclerView popularRecView;
+    private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
+    private TextView greeting;
 
     public LearnFragment() {
         // Required empty public constructor
@@ -49,7 +55,9 @@ public class LearnFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_learn, container, false);
+        View rootView = inflater.inflate(R.layout.fragment_learn, container, false);
+        greeting = rootView.findViewById(R.id.greeting);
+        return rootView;
     }
 
     @Override
@@ -57,7 +65,15 @@ public class LearnFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         currentLessonId = new ArrayList<>();
 
+        db = FirebaseFirestore.getInstance();
+
+        mAuth = FirebaseAuth.getInstance();
+
+
+        Log.d("haha", String.valueOf(R.drawable.gradient_background));
+
         //Current Lesson
+
         currentLessonCards = new ArrayList<>();
         currentLessonCardAdapter = new CurrentLessonCardAdapter(requireActivity().getSupportFragmentManager());
         currentRecView = view.findViewById(R.id.current_lesson_rec_view);
@@ -148,5 +164,33 @@ public class LearnFragment extends Fragment {
                         Log.e("LearnFragment", "Error getting documents: ", task.getException());
                     }
                 });
+    }
+
+    private void loadUserProfile() {
+        String userId = mAuth.getCurrentUser().getUid();
+        DocumentReference userDocRef = db.collection("users").document(userId);
+
+        userDocRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot documentSnapshot = task.getResult();
+                if (documentSnapshot != null && documentSnapshot.exists()) {
+                    User user = documentSnapshot.toObject(User.class);
+                    if (user != null) {
+                        greeting.setText("Hi, " + user.getUsername());
+
+                        // Safely handle the avatar field
+
+                    }else {
+                        greeting.setText("Hi, User");
+                    }
+                } else {
+                    Log.e("LearnFragment", "Document does not exist or is null");
+                    Toast.makeText(getContext(), "Profile not found", Toast.LENGTH_SHORT).show();
+                }
+            } else {
+                Log.e("LearnFragment", "Error fetching user profile", task.getException());
+                Toast.makeText(getContext(), "Failed to load profile", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
