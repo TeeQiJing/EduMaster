@@ -1,6 +1,7 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -10,24 +11,34 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.android.material.snackbar.Snackbar;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
 
 import com.practical.edumasters.fragments.LessonFragment;
 
 import com.practical.edumasters.fragments.ProfileFragment;
 import com.practical.edumasters.models.Chapter;
+import com.practical.edumasters.models.CurrentLessonCard;
 import com.practical.edumasters.models.PopularLessonCard;
 
 import java.util.ArrayList;
 
 public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLessonCardAdapter.ViewHolder> {
 
-    ArrayList<PopularLessonCard> cards = new ArrayList<>();
+    ArrayList<String> cards = new ArrayList<>();
     FragmentManager fragmentManager;
 
     public PopularLessonCardAdapter(FragmentManager fragmentManager) {
@@ -44,28 +55,74 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        holder.image.setImageResource(cards.get(position).getImage());
-        holder.level.setText(cards.get(position).getLevel());
-        holder.title.setText(cards.get(position).getTitle());
-        holder.ratings.setText(cards.get(position).getRatings());
+
+        String card = cards.get(position);
+
+        fetchData(card, holder);
 
         holder.RelLayout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LessonFragment lessonFragment = new LessonFragment();
-
-                fragmentManager.beginTransaction()
-                        .replace(R.id.fragment_container, lessonFragment)
-                        .addToBackStack(null)
-                        .commit();
+                navigateToLesson(card);
             }
         });
+    }
 
+    private void navigateToLesson(String card) {
+        Bundle bundle = new Bundle();
+        bundle.putString("lessonId", card);
 
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.ic_launcher_background, "Advanced", "JavaScript Programming", "1.2"));
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.gradient_background, "Intermediate", "Kotlin Programming", "4.7"));
-//        loadPopularLessonData(new PopularLessonCard(R.drawable.lesson_image, "Beginner", "Java Programming", "2.9"));
+        LessonFragment lessonFragment = new LessonFragment();
+        lessonFragment.setArguments(bundle);
 
+        fragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, lessonFragment)
+                .addToBackStack(null)
+                .commit();
+    }
+
+    private void fetchData(String card, @NonNull ViewHolder holder) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("total_lesson").whereEqualTo(FieldPath.documentId(), card).get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d("Popular Lesson Adapter", task.toString());
+                    for (QueryDocumentSnapshot doc: task.getResult()) {
+                        Log.d("Popular Lesson Adapter", doc.toString());
+                        String image = doc.getString("image");
+                        String level = doc.getString("level");
+                        String rating = doc.getString("rating");
+                        String title = doc.getString("title");
+
+                        holder.image.setImageResource(getImageResource(image));
+                        holder.level.setText(level);
+                        holder.ratings.setText(rating);
+                        holder.title.setText(title);
+                    }
+                }
+                else {
+                    Log.e("Popular Lesson Adapter", "Error fetching data", task.getException());
+                }
+            }
+        });
+    }
+
+    private int getImageResource(String imageName) {
+        switch (imageName) {
+            case "GitHubImage":
+                return R.drawable.ic_apple;
+            case "PythonImage":
+                return R.drawable.ic_certificate;
+            case "JavaImage":
+                return R.drawable.ic_google;
+            case "HTMLCSSImage":
+                return R.drawable.ic_facebook;
+            case "UIUXImage":
+                return R.drawable.ic_chat;
+            default:
+                return R.drawable.ic_launcher_background;  // Default image if no match found
+        }
     }
 
     @Override
@@ -73,9 +130,10 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
         return cards.size();
     }
 
-    public void setCards(ArrayList<PopularLessonCard> cards) {
+    public void setCards(ArrayList<String> cards) {
         this.cards = cards;
         notifyDataSetChanged();
+        Log.d("Popular Lesson Adapter", cards.toString());
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

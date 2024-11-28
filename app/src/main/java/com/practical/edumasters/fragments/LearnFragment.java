@@ -32,13 +32,19 @@ import com.practical.edumasters.models.PopularLessonCard;
 import com.practical.edumasters.adapters.PopularLessonCardAdapter;
 import com.practical.edumasters.models.User;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class LearnFragment extends Fragment {
 
     private ArrayList<CurrentLessonCard> currentLessonCards;
+    private ArrayList<String> popularLessonCards;
+    private ArrayList<String> currentLessonId;
     private CurrentLessonCardAdapter currentLessonCardAdapter;
+    private PopularLessonCardAdapter popularLessonCardAdapter;
     private RecyclerView currentRecView;
+    private RecyclerView popularRecView;
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private TextView greeting;
@@ -57,6 +63,7 @@ public class LearnFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        currentLessonId = new ArrayList<>();
 
         db = FirebaseFirestore.getInstance();
 
@@ -67,7 +74,6 @@ public class LearnFragment extends Fragment {
 
         //Current Lesson
 
-        loadUserProfile();
         currentLessonCards = new ArrayList<>();
         currentLessonCardAdapter = new CurrentLessonCardAdapter(requireActivity().getSupportFragmentManager());
         currentRecView = view.findViewById(R.id.current_lesson_rec_view);
@@ -76,7 +82,42 @@ public class LearnFragment extends Fragment {
 
         Log.d("LearnFragment", "RecyclerView set up with adapter.");
         fetchCurrentLessonData();
+
+        Log.d("learn fragment", currentLessonId.toString());
+
+        //Popular Lesson
+        popularLessonCards = new ArrayList<>();
+        popularLessonCardAdapter = new PopularLessonCardAdapter(requireActivity().getSupportFragmentManager());
+        popularRecView = view.findViewById(R.id.popular_lesson_rec_view);
+        popularRecView.setAdapter(popularLessonCardAdapter);
+        popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
     }
+
+    private void fetchTotalLessonData(ArrayList<String> hold) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("total_lesson").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d("bb", String.valueOf(currentLessonId.size()));
+                    for (QueryDocumentSnapshot doc: task.getResult()) {
+                        String docId =  doc.getId();
+                        Log.d("bb", docId);
+                        if (!hold.contains(docId)) {
+                            popularLessonCards.add(docId);
+                            Log.d("bbLearnFragment", popularLessonCards.toString());
+                        }
+                    }
+                    popularLessonCardAdapter.setCards(popularLessonCards);
+                    Log.d("bb", popularLessonCards.toString());
+                }
+                else {
+                    Log.e("LearnFragment", "Error getting total_card documents: ", task.getException());
+                }
+            }
+        });
+    }
+
 
     private void fetchCurrentLessonData() {
         // Get the current user ID
@@ -106,11 +147,14 @@ public class LearnFragment extends Fragment {
                                     Log.d("LearnFragment", "Fetched current lesson: " + currentLessonCard.getLessonId());
                                     Log.d("LearnFragment", "Progress: " + currentLessonCard.getProgress());
                                     currentLessonCards.add(currentLessonCard);
+                                    currentLessonId.add(currentLessonCard.getLessonId().getId());
+                                    Log.d("showing", currentLessonCard.getLessonId().getId());
                                 } else {
                                     Log.d("LearnFragment", "CurrentLessonCard is null for document: " + document.getId());
                                 }
                             }
                             currentLessonCardAdapter.setCard(currentLessonCards);
+                            fetchTotalLessonData(currentLessonId);
                         } else {
                             // No documents found for this user
                             Log.d("LearnFragment", "No current lessons found for user: " + userId);

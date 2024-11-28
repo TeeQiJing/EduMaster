@@ -26,6 +26,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
 import com.practical.edumasters.activities.MainActivity;
 import com.practical.edumasters.adapters.ChapterAdapter;
+import com.practical.edumasters.adapters.CurrentLessonCardAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
 
@@ -47,6 +48,7 @@ public class LessonFragment extends Fragment {
     private FirebaseAuth mAuth;
     private ChapterAdapter chapterAdapter;
     private List<Object> contentList; // List to hold chapters and quizzes
+    private String lessonId;
 
     public LessonFragment() {
         // Required empty public constructor
@@ -58,6 +60,7 @@ public class LessonFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         contentList = new ArrayList<>();
         mAuth = FirebaseAuth.getInstance();
+//        lessonId = getArguments().getString("lessonId");
     }
 
     @Override
@@ -79,7 +82,7 @@ public class LessonFragment extends Fragment {
         chapterRecyclerView.setAdapter(chapterAdapter);
 
         // Replace this with the actual lessonId you want to fetch
-        String lessonId = "OwNi8xTsohGN7T8dc8Jh";
+        lessonId = getArguments().getString("lessonId");
         loadLessonData(lessonId);
 
         btnEnroll.setOnClickListener(view -> {
