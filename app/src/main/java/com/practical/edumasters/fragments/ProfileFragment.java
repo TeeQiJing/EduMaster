@@ -96,6 +96,7 @@ public class ProfileFragment extends Fragment {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference userDocRef = db.collection("users").document(userId);
 
+        // Fetch user details
         userDocRef.get().addOnCompleteListener(task -> {
             if (task.isSuccessful()) {
                 DocumentSnapshot documentSnapshot = task.getResult();
@@ -103,15 +104,17 @@ public class ProfileFragment extends Fragment {
                     User user = documentSnapshot.toObject(User.class);
                     if (user != null) {
                         tvUsername.setText(user.getUsername());
-                        tvPoints.setText(user.getXp() + " Points");
-                        tvCourses.setText((user.getCourses() != null ? user.getCourses().size() : 0) + " Courses");
+                        tvPoints.setText(user.getXp() + "\nPoints");
 
-                        // Safely handle the avatar field
+                        // Load avatar if available
                         if (user.getAvatar().isEmpty()) {
                             avatarImageView.setImageResource(R.drawable.ic_avatar); // Default avatar
                         } else {
                             loadAvatar(user.getAvatar());
                         }
+
+                        // Fetch number of courses
+                        fetchCoursesCount(userId);
                     }
                 } else {
                     Log.e("ProfileFragment", "Document does not exist or is null");
@@ -122,6 +125,25 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "Failed to load profile", Toast.LENGTH_SHORT).show();
             }
         });
+    }
+
+    // Fetch the number of courses the user is enrolled in
+    private void fetchCoursesCount(String userId) {
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        db.collection("current_lesson")
+                .whereEqualTo("userId", userRef) // Use the DocumentReference for comparison
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        int courseCount = task.getResult().size();
+                        tvCourses.setText(courseCount + "\nCourses");
+                    } else {
+                        Log.e("ProfileFragment", "Error fetching courses", task.getException());
+                        tvCourses.setText("0\nCourses");
+                        Toast.makeText(getContext(), "Failed to fetch course count", Toast.LENGTH_SHORT).show();
+                    }
+                });
     }
 
     private void openImagePicker() {
