@@ -70,7 +70,7 @@ public class LearnFragment extends Fragment {
         mAuth = FirebaseAuth.getInstance();
 
 
-        Log.d("haha", String.valueOf(R.drawable.gradient_background));
+        Log.d("LearnFragment", String.valueOf(R.drawable.gradient_background));
 
         //Current Lesson
 
@@ -83,7 +83,9 @@ public class LearnFragment extends Fragment {
         Log.d("LearnFragment", "RecyclerView set up with adapter.");
         fetchCurrentLessonData();
 
-        Log.d("learn fragment", currentLessonId.toString());
+        Log.d("learnFragment", currentLessonId.toString());
+
+        loadUserProfile();
 
         //Popular Lesson
         popularLessonCards = new ArrayList<>();
@@ -92,32 +94,6 @@ public class LearnFragment extends Fragment {
         popularRecView.setAdapter(popularLessonCardAdapter);
         popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
     }
-
-    private void fetchTotalLessonData(ArrayList<String> hold) {
-        FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("total_lesson").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-            @Override
-            public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                if (task.isSuccessful()) {
-                    Log.d("bb", String.valueOf(currentLessonId.size()));
-                    for (QueryDocumentSnapshot doc: task.getResult()) {
-                        String docId =  doc.getId();
-                        Log.d("bb", docId);
-                        if (!hold.contains(docId)) {
-                            popularLessonCards.add(docId);
-                            Log.d("bbLearnFragment", popularLessonCards.toString());
-                        }
-                    }
-                    popularLessonCardAdapter.setCards(popularLessonCards);
-                    Log.d("bb", popularLessonCards.toString());
-                }
-                else {
-                    Log.e("LearnFragment", "Error getting total_card documents: ", task.getException());
-                }
-            }
-        });
-    }
-
 
     private void fetchCurrentLessonData() {
         // Get the current user ID
@@ -158,6 +134,8 @@ public class LearnFragment extends Fragment {
                         } else {
                             // No documents found for this user
                             Log.d("LearnFragment", "No current lessons found for user: " + userId);
+                            currentLessonCardAdapter.setCard(currentLessonCards); // Ensure empty view if no current lessons
+                            fetchTotalLessonData(null); // Pass null to fetch all lessons as popular
                         }
                     } else {
                         // Error while fetching data
@@ -165,6 +143,107 @@ public class LearnFragment extends Fragment {
                     }
                 });
     }
+
+    private void fetchTotalLessonData(@Nullable ArrayList<String> hold) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection("total_lesson").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+            @Override
+            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                if (task.isSuccessful()) {
+                    Log.d("LearnFragment", String.valueOf(currentLessonId.size()));
+
+                    for (QueryDocumentSnapshot doc : task.getResult()) {
+                        String docId = doc.getId();
+                        Log.d("LearnFragment", docId);
+
+                        // Add to popular if no "current lessons" or lesson is not in the "current" list
+                        if (hold == null || !hold.contains(docId)) {
+                            popularLessonCards.add(docId);
+                            Log.d("LearnFragment", popularLessonCards.toString());
+                        }
+                    }
+                    popularLessonCardAdapter.setCards(popularLessonCards);
+                    Log.d("LearnFragment", "Popular lessons updated: " + popularLessonCards.toString());
+                } else {
+                    Log.e("LearnFragment", "Error getting total_lesson documents: ", task.getException());
+                }
+            }
+        });
+    }
+
+
+//    private void fetchTotalLessonData(ArrayList<String> hold) {
+//        FirebaseFirestore db = FirebaseFirestore.getInstance();
+//        db.collection("total_lesson").get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+//            @Override
+//            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+//                if (task.isSuccessful()) {
+//                    Log.d("LearnFragment", String.valueOf(currentLessonId.size()));
+//                    for (QueryDocumentSnapshot doc: task.getResult()) {
+//                        String docId =  doc.getId();
+//                        Log.d("LearnFragment", docId);
+//                        if (!hold.contains(docId)) {
+//                            popularLessonCards.add(docId);
+//                            Log.d("LearnFragment", popularLessonCards.toString());
+//                        }
+//                    }
+//                    popularLessonCardAdapter.setCards(popularLessonCards);
+//                    Log.d("LearnFragment", popularLessonCards.toString());
+//                }
+//                else {
+//                    Log.e("LearnFragment", "Error getting total_card documents: ", task.getException());
+//                }
+//            }
+//        });
+//    }
+
+
+//    private void fetchCurrentLessonData() {
+//        // Get the current user ID
+//        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+//        DocumentReference userReference = FirebaseFirestore.getInstance().collection("users").document(userId);
+//
+//        // Fetch the current lesson data for the user
+//        FirebaseFirestore.getInstance()
+//                .collection("current_lesson")  // The collection where current lessons are stored
+//                .whereEqualTo("userId", userReference)  // Query by userId
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        QuerySnapshot querySnapshot = task.getResult();
+//
+//                        // Log the query result
+//                        Log.d("LearnFragment", "Query successful, found " + querySnapshot.size() + " documents.");
+//
+//                        if (querySnapshot != null && !querySnapshot.isEmpty()) {
+//                            // Loop through all the documents returned
+//                            for (DocumentSnapshot document : querySnapshot) {
+//                                // Deserialize the document to the CurrentLessonCard object
+//                                CurrentLessonCard currentLessonCard = document.toObject(CurrentLessonCard.class);
+//
+//                                // Log the fetched data to help debug
+//                                if (currentLessonCard != null) {
+//                                    Log.d("LearnFragment", "Fetched current lesson: " + currentLessonCard.getLessonId());
+//                                    Log.d("LearnFragment", "Progress: " + currentLessonCard.getProgress());
+//                                    currentLessonCards.add(currentLessonCard);
+//                                    currentLessonId.add(currentLessonCard.getLessonId().getId());
+//                                    Log.d("showing", currentLessonCard.getLessonId().getId());
+//                                } else {
+//                                    Log.d("LearnFragment", "CurrentLessonCard is null for document: " + document.getId());
+//                                }
+//                            }
+//                            currentLessonCardAdapter.setCard(currentLessonCards);
+//                            fetchTotalLessonData(currentLessonId);
+//                        } else {
+//                            // No documents found for this user
+//                            Log.d("LearnFragment", "No current lessons found for user: " + userId);
+//                        }
+//                    } else {
+//                        // Error while fetching data
+//                        Log.e("LearnFragment", "Error getting documents: ", task.getException());
+//                    }
+//                });
+//    }
 
     private void loadUserProfile() {
         String userId = mAuth.getCurrentUser().getUid();

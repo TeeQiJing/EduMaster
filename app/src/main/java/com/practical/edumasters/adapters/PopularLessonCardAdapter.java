@@ -74,6 +74,7 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
 
         LessonFragment lessonFragment = new LessonFragment();
         lessonFragment.setArguments(bundle);
+        Log.d("PopularLessonCardAdapter", bundle.toString());
 
         fragmentManager.beginTransaction()
                 .replace(R.id.fragment_container, lessonFragment)
@@ -87,9 +88,9 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
             @Override
             public void onComplete(@NonNull Task<QuerySnapshot> task) {
                 if (task.isSuccessful()) {
-                    Log.d("Popular Lesson Adapter", task.toString());
+                    Log.d("PopularLessonCardAdapter", task.toString());
                     for (QueryDocumentSnapshot doc: task.getResult()) {
-                        Log.d("Popular Lesson Adapter", doc.toString());
+                        Log.d("PopularLessonCardAdapter", doc.toString());
                         String image = doc.getString("image");
                         String level = doc.getString("level");
                         String rating = doc.getString("rating");
@@ -102,7 +103,7 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
                     }
                 }
                 else {
-                    Log.e("Popular Lesson Adapter", "Error fetching data", task.getException());
+                    Log.e("PopularLessonCardAdapter", "Error fetching data", task.getException());
                 }
             }
         });
@@ -133,7 +134,7 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
     public void setCards(ArrayList<String> cards) {
         this.cards = cards;
         notifyDataSetChanged();
-        Log.d("Popular Lesson Adapter", cards.toString());
+        Log.d("PopularLessonCardAdapter", cards.toString());
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
