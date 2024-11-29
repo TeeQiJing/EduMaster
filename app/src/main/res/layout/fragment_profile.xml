@@ -93,7 +93,7 @@
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_margin="8dp"
-
+                android:padding="5dp"
                 android:layout_weight="1"
                >
 
@@ -105,10 +105,11 @@
                     android:src="@drawable/ic_hexagon" />
 
                 <TextView
+                    android:id="@+id/tvBadge"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:text="4"
+                    android:text=""
 
                     android:textColor="@android:color/white"
                     android:textSize="14sp"
@@ -122,7 +123,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="4800 \nTotal Points"
+                android:text=""
                 android:gravity="center"
                 android:layout_weight="1"
                 android:textColor="#FFFFFF"
@@ -135,7 +136,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="20dp"
-                android:text="200 \nCourses Enrolled"
+                android:text=""
                 android:layout_marginEnd="40dp"
                 android:gravity="center"
                 android:textColor="#FFFFFF"

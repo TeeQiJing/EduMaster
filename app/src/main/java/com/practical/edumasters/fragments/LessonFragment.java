@@ -266,6 +266,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -279,6 +281,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
@@ -309,7 +312,7 @@ public class LessonFragment extends Fragment {
     private TextView tvLessonRatingText;
 
     private ConstraintLayout CLbtn;
-    private ImageView lessonImageView, btnBack;
+    private ImageView lessonImageView, btnFav;
     private RecyclerView chapterRecyclerView;
     private Button btnEnroll;
 
@@ -317,6 +320,7 @@ public class LessonFragment extends Fragment {
     private List<Object> contentList; // List to hold chapters and quizzes
     private String lessonId;
     private boolean isEnrolled = false; // Flag to check enrollment status
+    private boolean isFavorited = false;
 
     public LessonFragment() {
         // Required empty public constructor
@@ -340,8 +344,13 @@ public class LessonFragment extends Fragment {
         lessonImageView = rootView.findViewById(R.id.lessonImage);
         chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
         btnEnroll = rootView.findViewById(R.id.btnEnroll);
-        btnBack = rootView.findViewById(R.id.btnBack);
+        btnFav = rootView.findViewById(R.id.btnFav);
+
         CLbtn = rootView.findViewById(R.id.CLbtn);
+        MaterialToolbar toolbar = rootView.findViewById(R.id.materialToolbar);
+        toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+
+
 
         chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
@@ -349,9 +358,34 @@ public class LessonFragment extends Fragment {
             if (!isEnrolled) {
                 Toast.makeText(getContext(), "Please enroll in the lesson first.", Toast.LENGTH_SHORT).show();
             } else {
-                Toast.makeText(getContext(), "Clicked: " + item.toString(), Toast.LENGTH_SHORT).show();
+                // Assuming 'item' is a Chapter object
+                Chapter selectedChapter = (Chapter) item;
+                String chapterId = selectedChapter.getId(); // Get the chapter ID
+                if (chapterId != null && !chapterId.isEmpty()) {
+                    ContentFragment contentFragment = new ContentFragment();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("chapterId", chapterId);  // Pass the chapter ID
+                    bundle.putString("chapterTitle", selectedChapter.getTitle());  // Pass the chapter Title
+                    contentFragment.setArguments(bundle);
+                    FragmentManager fragmentManager = getActivity() != null ? getActivity().getSupportFragmentManager() : null;
+                    if (fragmentManager != null) {
+                        fragmentManager.beginTransaction()
+                                .setCustomAnimations(
+                                        R.anim.slide_in_right,  // Animation for fragment entry
+                                        R.anim.slide_out_left, // Animation for fragment exit
+                                        R.anim.slide_in_left,  // Animation for returning to the fragment
+                                        R.anim.slide_out_right // Animation for exiting back
+                                )
+                                .replace(R.id.fragment_container, contentFragment)
+                                .addToBackStack(null)
+                                .commitAllowingStateLoss();
+                    }
+                } else {
+                    Toast.makeText(getContext(), "Chapter content is empty", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
 
         chapterRecyclerView.setAdapter(chapterAdapter);
 
@@ -364,7 +398,28 @@ public class LessonFragment extends Fragment {
             enrollInLesson(userId, lessonId);
         });
 
-        btnBack.setOnClickListener(v -> navigateBackToLearnFragment());
+
+
+        btnFav.setOnClickListener(v -> {
+            // Load the click animation
+            Animation clickAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.scale_click_animation);
+
+            // Start the animation
+            v.startAnimation(clickAnimation);
+
+            // Toggle favorite status
+            if (isFavorited) {
+                // Handle unfavorite
+                isFavorited = false;
+                btnFav.setImageResource(R.drawable.ic_love); // Replace with "not favorite" icon
+            } else {
+                // Handle favorite
+                isFavorited = true;
+                btnFav.setImageResource(R.drawable.ic_love_filled); // Replace with "favorite" icon
+            }
+
+            // Additional logic (like saving the state or updating the UI can go here)
+        });
 
 
 
@@ -476,6 +531,9 @@ public class LessonFragment extends Fragment {
             return;
         }
 
+        // Clear the existing contentList to avoid duplicates
+        contentList.clear();
+
         int chapterIndex = 0, quizIndex = 0;
 
         for (char type : pattern.toCharArray()) {
@@ -488,6 +546,7 @@ public class LessonFragment extends Fragment {
 
         chapterAdapter.notifyDataSetChanged();
     }
+
 
     private void enrollInLesson(String userId, String lessonId) {
         CollectionReference currentLessonRef = db.collection("current_lesson");
@@ -509,15 +568,7 @@ public class LessonFragment extends Fragment {
                 });
     }
 
-    private void navigateBackToLearnFragment() {
-        FragmentManager fragmentManager = getActivity() != null ? getActivity().getSupportFragmentManager() : null;
-        if (fragmentManager != null) {
-            fragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, new LearnFragment())
-                    .addToBackStack(null)
-                    .commitAllowingStateLoss();
-        }
-    }
+
 
 
 

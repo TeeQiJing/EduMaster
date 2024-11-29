@@ -72,17 +72,28 @@ public class  CurrentLessonCardAdapter extends RecyclerView.Adapter<CurrentLesso
     }
 
     private void navigateToLesson(CurrentLessonCard currentLessonCard) {
+        // Pass the lesson ID as a fresh argument to the fragment
         Bundle bundle = new Bundle();
-        bundle.putString("lessonId", currentLessonCard.getLessonId().getId());
+        bundle.putString("lessonId", currentLessonCard.getLessonId().getId()); // Use the lesson ID for the new lesson
+        Log.d("CurrentLessonCardAdapter", "Navigating to lesson with ID: " + currentLessonCard.getLessonId().getId());
 
+        // Create a new instance of LessonFragment
         LessonFragment lessonFragment = new LessonFragment();
         lessonFragment.setArguments(bundle);
 
+        // Replace the current fragment with the new LessonFragment
         fragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, lessonFragment)
-                .addToBackStack(null)
+                .setCustomAnimations(
+                        R.anim.slide_in_right,  // Animation for fragment entry
+                        R.anim.slide_out_left,  // Animation for fragment exit
+                        R.anim.slide_in_left,   // Animation for returning to the fragment
+                        R.anim.slide_out_right  // Animation for exiting back
+                )
+                .replace(R.id.fragment_container, lessonFragment)  // Use replace to load a fresh fragment
+                .addToBackStack(null)  // Ensure you can go back to the previous fragment
                 .commit();
     }
+
 
     private void fetchLessonDetails(CurrentLessonCard currentCard, @NonNull ViewHolder holder) {
         Log.d("CurrentLessonCardAdapter", "Fetching lesson details for lessonId: " + currentCard.getLessonId().getId());

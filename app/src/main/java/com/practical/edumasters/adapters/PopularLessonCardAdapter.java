@@ -81,6 +81,12 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
         Log.d("PopularLessonCardAdapter", bundle.toString());
 
         fragmentManager.beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,  // Animation for fragment entry
+                        R.anim.slide_out_left, // Animation for fragment exit
+                        R.anim.slide_in_left,  // Animation for returning to the fragment
+                        R.anim.slide_out_right // Animation for exiting back
+                )
                 .replace(R.id.fragment_container, lessonFragment)
                 .addToBackStack(null)
                 .commit();

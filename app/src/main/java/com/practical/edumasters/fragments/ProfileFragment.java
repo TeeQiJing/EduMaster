@@ -38,7 +38,7 @@ public class ProfileFragment extends Fragment {
     private ImageView avatarImageView;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-    private TextView tvUsername, tvPoints, tvCourses;
+    private TextView tvUsername, tvPoints, tvCourses, tvBadge;
     private LinearLayout btnCertificate, btnFeedback, btnSettings, btnLogout;
 
     public ProfileFragment() {
@@ -66,6 +66,9 @@ public class ProfileFragment extends Fragment {
         btnFeedback = rootView.findViewById(R.id.btnFeedback);
         btnSettings = rootView.findViewById(R.id.btnSettings);
         btnLogout = rootView.findViewById(R.id.btnLogout);
+        tvBadge = rootView.findViewById(R.id.tvBadge);
+
+
 
         // Load user profile
         loadUserProfile();
@@ -105,6 +108,9 @@ public class ProfileFragment extends Fragment {
                     if (user != null) {
                         tvUsername.setText(user.getUsername());
                         tvPoints.setText(user.getXp() + "\nPoints");
+                        if (user.getXp() >= 100) tvBadge.setText(String.valueOf(user.getXp() / 100));
+                        else tvBadge.setText("1");
+
 
                         // Load avatar if available
                         if (user.getAvatar().isEmpty()) {
