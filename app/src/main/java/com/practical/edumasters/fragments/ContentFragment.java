@@ -426,7 +426,14 @@ public class ContentFragment extends Fragment {
     private void addCodeView(String codeSnippet) {
         View codeView = LayoutInflater.from(getContext()).inflate(R.layout.item_code, contentContainer, false);
         TextView codeTextView = codeView.findViewById(R.id.codeTextView);
+
+        // Set the code snippet
         codeTextView.setText(codeSnippet);
+
+        // Enable focus to trigger horizontal scrolling
+        codeTextView.setSelected(true);
+        codeTextView.setHorizontallyScrolling(true);
+
         contentContainer.addView(codeView);
     }
 }

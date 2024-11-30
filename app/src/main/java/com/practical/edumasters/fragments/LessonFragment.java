@@ -300,6 +300,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class LessonFragment extends Fragment {
 
@@ -349,6 +350,7 @@ public class LessonFragment extends Fragment {
         CLbtn = rootView.findViewById(R.id.CLbtn);
         MaterialToolbar toolbar = rootView.findViewById(R.id.materialToolbar);
         toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
+        btnEnroll.setVisibility(View.GONE);
 
 
 
@@ -487,44 +489,93 @@ public class LessonFragment extends Fragment {
         }
     }
 
-    private void loadContentInPattern(String lessonId, String pattern) {
-        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+//    private void loadContentInPattern(String lessonId, String pattern) {
+//        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+//
+//        List<Chapter> chapters = new ArrayList<>();
+//        List<Quiz> quizzes = new ArrayList<>();
+//
+//        db.collection("chapters")
+//                .whereEqualTo("ref", lessonRef)
+//                .orderBy("groupId")
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        for (DocumentSnapshot doc : task.getResult()) {
+//                            chapters.add(Chapter.fromSnapshot(doc));
+//                        }
+//                        if (!quizzes.isEmpty()) {
+//                            arrangeContentInPattern(chapters, quizzes, pattern);
+//                        }
+//                    } else {
+//                        Log.e(TAG, "Error fetching chapters", task.getException());
+//                    }
+//                });
+//
+//        db.collection("quiz")
+//                .whereEqualTo("ref", lessonRef)
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful()) {
+//                        for (DocumentSnapshot doc : task.getResult()) {
+//                            quizzes.add(Quiz.fromSnapshot(doc));
+//                        }
+//                        if (!chapters.isEmpty()) {
+//                            arrangeContentInPattern(chapters, quizzes, pattern);
+//                        }
+//                    } else {
+//                        Log.e(TAG, "Error fetching quizzes", task.getException());
+//                    }
+//                });
+//    }
+private void loadContentInPattern(String lessonId, String pattern) {
+    DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
 
-        List<Chapter> chapters = new ArrayList<>();
-        List<Quiz> quizzes = new ArrayList<>();
+    List<Chapter> chapters = new ArrayList<>();
+    List<Quiz> quizzes = new ArrayList<>();
 
-        db.collection("chapters")
-                .whereEqualTo("ref", lessonRef)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot doc : task.getResult()) {
-                            chapters.add(Chapter.fromSnapshot(doc));
-                        }
-                        if (!quizzes.isEmpty()) {
-                            arrangeContentInPattern(chapters, quizzes, pattern);
-                        }
-                    } else {
-                        Log.e(TAG, "Error fetching chapters", task.getException());
+    // Counter to track completed tasks
+    AtomicInteger tasksCompleted = new AtomicInteger(0);
+    int totalTasks = 2; // Number of tasks to complete (chapters + quizzes)
+
+    // Define a common callback for when data is ready
+    Runnable onDataReady = () -> {
+        if (tasksCompleted.incrementAndGet() == totalTasks) {
+            arrangeContentInPattern(chapters, quizzes, pattern);
+        }
+    };
+
+    // Fetch chapters
+    db.collection("chapters")
+            .whereEqualTo("ref", lessonRef)
+            .orderBy("groupId")
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    for (DocumentSnapshot doc : task.getResult()) {
+                        chapters.add(Chapter.fromSnapshot(doc));
                     }
-                });
+                } else {
+                    Log.e(TAG, "Error fetching chapters", task.getException());
+                }
+                onDataReady.run(); // Notify that chapters are ready
+            });
 
-        db.collection("quiz")
-                .whereEqualTo("ref", lessonRef)
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        for (DocumentSnapshot doc : task.getResult()) {
-                            quizzes.add(Quiz.fromSnapshot(doc));
-                        }
-                        if (!chapters.isEmpty()) {
-                            arrangeContentInPattern(chapters, quizzes, pattern);
-                        }
-                    } else {
-                        Log.e(TAG, "Error fetching quizzes", task.getException());
+    // Fetch quizzes
+    db.collection("quiz")
+            .whereEqualTo("ref", lessonRef)
+            .get()
+            .addOnCompleteListener(task -> {
+                if (task.isSuccessful() && task.getResult() != null) {
+                    for (DocumentSnapshot doc : task.getResult()) {
+                        quizzes.add(Quiz.fromSnapshot(doc));
                     }
-                });
-    }
+                } else {
+                    Log.e(TAG, "Error fetching quizzes", task.getException());
+                }
+                onDataReady.run(); // Notify that quizzes are ready
+            });
+}
 
     private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
         if (pattern == null || pattern.isEmpty()) {
@@ -567,12 +618,6 @@ public class LessonFragment extends Fragment {
                     Toast.makeText(getContext(), "Enrollment failed!", Toast.LENGTH_SHORT).show();
                 });
     }
-
-
-
-
-
-
 }
 
 
