@@ -111,6 +111,7 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -121,7 +122,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.practical.edumasters.R;
+import com.practical.edumasters.fragments.LessonFragment;
 import com.practical.edumasters.models.Chapter;
+import com.practical.edumasters.models.CurrentLessonCard;
 import com.practical.edumasters.models.Quiz;
 
 import java.util.List;
@@ -228,6 +231,7 @@ public class ChapterAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             icon.setImageResource(R.drawable.ic_quiz); // Use a default icon for quizzes
         }
     }
+
 }
 
 

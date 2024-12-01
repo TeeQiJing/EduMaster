@@ -1,4 +1,3 @@
-
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -11,57 +10,32 @@
         android:layout_height="match_parent"
         android:background="@drawable/gradient_background">
 
-        <!-- Back Button -->
-
-        <!-- Favorite Button -->
-
-        <!-- Course Image -->
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="408dp"
-            android:layout_height="60dp"
-            android:orientation="horizontal"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
-
-            <ImageView
-                android:id="@+id/btnBack"
-                android:layout_width="30dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal|center_vertical|end"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="5dp"
-                android:layout_weight="1"
-                android:padding="5dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_back2" />
-
-            <TextView
-                android:id="@+id/coText"
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:fontFamily="@font/roboto_flex"
-                android:gravity="center|fill_vertical"
-                android:text="Course Overview"
-                android:textColor="#FFFFFF"
-                android:textSize="20sp"
-                tools:textStyle="bold" />
-
-            <ImageView
+        <!-- Material Toolbar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/materialToolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@android:color/transparent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:elevation="4dp"
+            android:theme="@style/ThemeOverlay.Material3.Dark.ActionBar"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:navigationIconTint="@color/white"
+            app:title="Course Overview"
+            android:paddingEnd="10dp"
+            app:titleCentered="true"
+            tools:ignore="RtlSymmetry">
+            <!-- Add a "love" button -->
+            <ImageButton
                 android:id="@+id/btnFav"
-                android:layout_width="24dp"
-                android:layout_height="35dp"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="5dp"
-                android:layout_marginRight="20dp"
-                android:layout_weight="1"
-                android:padding="5dp"
-                android:src="@drawable/ic_love" />
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:src="@drawable/ic_love"
+                android:layout_gravity="end|center_vertical"
+                android:background="@android:color/transparent"
+                android:contentDescription="Favourite"/>
+        </com.google.android.material.appbar.MaterialToolbar>
 
-        </LinearLayout>
 
 
         <androidx.cardview.widget.CardView
@@ -73,7 +47,7 @@
             app:cardElevation="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/linearLayout">
+            app:layout_constraintTop_toBottomOf="@id/materialToolbar">
 
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -85,8 +59,6 @@
                     android:id="@+id/lessonImage"
                     android:layout_width="match_parent"
                     android:layout_height="180dp"
-
-
                     android:src="@drawable/placeholder_image" />
 
                 <LinearLayout
@@ -111,7 +83,6 @@
                         android:layout_height="23dp"
                         android:layout_gravity="center|top"
                         android:layout_marginTop="8dp"
-
                         android:layout_weight="1"
                         android:src="@drawable/ic_star" />
 
@@ -139,7 +110,7 @@
             app:layout_constraintBottom_toTopOf="@+id/CLbtn"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/cardView">
+            app:layout_constraintTop_toBottomOf="@id/cardView">
 
             <!-- Tabs (Lessons and Description) -->
             <LinearLayout
@@ -179,9 +150,7 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/tabsLayout" />
 
-
         </androidx.constraintlayout.widget.ConstraintLayout>
-
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/CLbtn"
@@ -205,18 +174,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
         </androidx.constraintlayout.widget.ConstraintLayout>
-
-        <!-- Course Title -->
-
-        <!-- Course Info (Duration and Lessons) -->
-
-        <!-- Rating -->
-
-        <!-- Tabs (Lessons and Description) -->
-
-        <!-- Lessons RecyclerView -->
-
-        <!-- Enroll Now Button -->
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </FrameLayout>
