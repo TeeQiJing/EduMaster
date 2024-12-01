@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         contentFragment = new ContentFragment();
 
         // Load the default fragment
-        loadFragment(contentFragment);
+        loadFragment(learnFragment);
 
 
         // Handle BottomNavigation item clicks
