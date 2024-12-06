@@ -52,11 +52,12 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
+
             <TextView
                 android:id="@+id/questionTitle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="32dp"
+                android:layout_marginBottom="16dp"
                 android:gravity="center|left"
                 android:padding="8dp"
                 android:text="Q1. ABC"
@@ -72,24 +73,22 @@
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:text="Option A"
+                android:textAllCaps="false"
                 app:layout_constraintBottom_toTopOf="@+id/optionB"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent" />
-
-            <!-- Feedback Message -->
-
-            <!-- Next Button -->
 
             <Button
                 android:id="@+id/optionB"
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:text="Option B"
+                android:textAllCaps="false"
                 app:layout_constraintBottom_toTopOf="@+id/optionC"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -100,8 +99,9 @@
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="16dp"
                 android:text="Option C"
+                android:textAllCaps="false"
                 app:layout_constraintBottom_toTopOf="@+id/optionD"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
@@ -112,26 +112,26 @@
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="84dp"
+                android:layout_marginBottom="76dp"
                 android:text="Option D"
+                android:textAllCaps="false"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintStart_toStartOf="parent" />
+
 
             <Button
                 android:id="@+id/nextButton"
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="wrap_content"
                 android:layout_height="40dp"
-                android:layout_marginTop="60dp"
                 android:layout_marginEnd="16dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="8dp"
                 android:text="Next"
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/optionD" />
+                app:layout_constraintEnd_toEndOf="parent" />
 
             <Button
                 android:id="@+id/previousButton"
@@ -139,13 +139,11 @@
                 android:layout_width="0dp"
                 android:layout_height="40dp"
                 android:layout_marginStart="16dp"
-                android:layout_marginTop="60dp"
-                android:layout_marginBottom="24dp"
+                android:layout_marginBottom="8dp"
                 android:text="Previous"
                 android:visibility="visible"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/optionD" />
+                app:layout_constraintStart_toStartOf="parent" />
 
 
 
