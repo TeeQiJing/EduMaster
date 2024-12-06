@@ -3,37 +3,27 @@ package com.practical.edumasters.models;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 
+import java.util.List;
+
 public class Quiz {
-    private String id;
+
     private String title;
-    private DocumentReference ref;
+    private String Id;
+    private DocumentReference ref; // Reference to parent lesson
 
-    public Quiz() {
-        // Default constructor
-    }
-
+    // Static method to create a Quiz object from Firestore snapshot
     public static Quiz fromSnapshot(DocumentSnapshot snapshot) {
-        return snapshot.toObject(Quiz.class);
+        Quiz quiz = new Quiz();
+
+        // Populate fields
+        quiz.setTitle(snapshot.getString("title"));
+        quiz.setId(snapshot.getId()); // Convert Long to int
+        quiz.setRef(snapshot.getDocumentReference("ref")); // Get reference to the parent lesson
+
+        return quiz;
     }
 
     // Getters and setters
-    public DocumentReference getRef() {
-        return ref;
-    }
-
-    public void setRef(DocumentReference ref) {
-        this.ref = ref;
-    }
-
-    // Getters and Setters
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
-    }
-
     public String getTitle() {
         return title;
     }
@@ -42,5 +32,20 @@ public class Quiz {
         this.title = title;
     }
 
+    public String getId() {
+        return Id;
+    }
+
+    public void setId(String Id) {
+        this.Id = Id;
+    }
+
+    public DocumentReference getRef() {
+        return ref;
+    }
+
+    public void setRef(DocumentReference ref) {
+        this.ref = ref;
+    }
 
 }
