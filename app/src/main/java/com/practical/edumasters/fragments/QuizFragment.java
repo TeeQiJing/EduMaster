@@ -15,14 +15,18 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
 
 import com.bumptech.glide.Glide;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
+import com.practical.edumasters.activities.MainActivity;
 import com.practical.edumasters.models.Question;
 
 import java.util.ArrayList;
@@ -63,10 +67,19 @@ public class QuizFragment extends Fragment {
 
         // Get quizId and userId from arguments
         quizId = getArguments() != null ? getArguments().getString("quizId") : null;
+        String quizTitle = getArguments() != null ? getArguments().getString("quizTitle") : null;
         userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         Log.d(TAG, "Received quizId: " + quizId);
         Log.d(TAG, "Received userId: " + userId);
+
+        MaterialToolbar topAppBar = view.findViewById(R.id.topAppBar);
+
+
+
+        // Set the title programmatically
+        topAppBar.setTitle(quizTitle);
+        topAppBar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
 
         if (quizId != null && userId != null) {
             loadQuizData(quizId);
@@ -134,8 +147,13 @@ public class QuizFragment extends Fragment {
         resetButtonColors();
 
         // Update visibility of navigation buttons
-        nextButton.setVisibility(currentQuestionIndex < questions.size() - 1 ? View.VISIBLE : View.GONE);
         previousButton.setVisibility(currentQuestionIndex > 0 ? View.VISIBLE : View.GONE);
+
+        // Enable answer buttons
+        optionA.setEnabled(true);
+        optionB.setEnabled(true);
+        optionC.setEnabled(true);
+        optionD.setEnabled(true);
 
         // Set question title
         questionTitle.setText("Q" + (currentQuestionIndex + 1) + ". " + question.getTitle());
@@ -163,10 +181,72 @@ public class QuizFragment extends Fragment {
             optionD.setOnClickListener(v -> processAnswer(question, options.get(3), optionD));
         }
 
-        // Restore answer state if already answered
+        // Check if the question has already been answered
         restoreAnswerState(question);
+
+        // Update nextButton text and behavior
+        if (currentQuestionIndex == questions.size() - 1) {
+            nextButton.setText("Finish");
+            nextButton.setOnClickListener(v -> quitToPreviousFragment());
+        } else {
+            nextButton.setText("Next");
+            nextButton.setOnClickListener(v -> {
+                if (currentQuestionIndex < questions.size() - 1) {
+                    currentQuestionIndex++;
+                    displayQuestion(questions.get(currentQuestionIndex));
+                }
+            });
+        }
+    }
+    private void quitToPreviousFragment() {
+        Log.d(TAG, "Navigating back to previous fragment and saving quiz progress.");
+        if (quizId == null || userId == null) {
+            Log.e(TAG, "Quiz ID or User ID is missing. Cannot update quiz progress.");
+            return;
+        }
+
+        // Reference to the `quiz_progress` collection
+        db.collection("quiz_progress")
+                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+                .whereEqualTo("quizIdRef", db.collection("quiz").document(quizId))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null && task.getResult().isEmpty()) {
+                        // If no progress exists, add a new record
+                        Map<String, Object> progressData = new HashMap<>();
+                        progressData.put("userIdRef", db.collection("users").document(userId));
+                        progressData.put("quizIdRef", db.collection("quiz").document(quizId));
+                        progressData.put("completedAt", FieldValue.serverTimestamp());
+
+                        db.collection("quiz_progress")
+                                .add(progressData)
+                                .addOnSuccessListener(documentReference -> {
+                                    Log.d(TAG, "Quiz progress successfully saved.");
+                                    navigateBack(); // Navigate to the previous fragment
+                                })
+                                .addOnFailureListener(e -> Log.e(TAG, "Error saving quiz progress", e));
+                    } else if (task.isSuccessful()) {
+                        Log.d(TAG, "Quiz progress already exists. No action needed.");
+                        navigateBack(); // Navigate to the previous fragment
+                    } else {
+                        Log.e(TAG, "Failed to check quiz progress", task.getException());
+                    }
+                });
     }
 
+    // Helper method to navigate back to the previous fragment
+    private void navigateBack() {
+        if (getActivity() != null) {
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            if (fragmentManager != null) {
+                fragmentManager.popBackStack(); // Go back to the previous fragment in the stack
+            } else {
+                Log.e(TAG, "FragmentManager is null.");
+            }
+        } else {
+            Log.e(TAG, "Activity is null.");
+        }
+    }
 
     private void processAnswer(Question question, String selectedAnswer, Button selectedButton) {
         if (isAnswered) return;
@@ -202,33 +282,55 @@ public class QuizFragment extends Fragment {
 
                         if (selectedAnswer != null && isCorrect != null) {
                             highlightAnswer(question, selectedAnswer, isCorrect);
-                            disableOptions();
+                            disableOptions(); // Disable only if the question is answered
                         }
                     }
                 });
     }
+
 
     private void saveUserAnswer(Question question, String selectedAnswer) {
         String questionId = questionIds.get(currentQuestionIndex);
         DocumentReference userRef = db.collection("users").document(userId);
         DocumentReference questionRef = db.collection("questions").document(questionId);
 
+        boolean isCorrect = selectedAnswer.equals(question.getAnswer());
+        int questionScore = question.getScore(); // Get the score for this question
+
         Map<String, Object> userAnswerData = new HashMap<>();
         userAnswerData.put("userIdRef", userRef);
         userAnswerData.put("questionIdRef", questionRef);
         userAnswerData.put("selectedAnswer", selectedAnswer);
-        userAnswerData.put("isCorrect", selectedAnswer.equals(question.getAnswer()));
+        userAnswerData.put("isCorrect", isCorrect);
 
         db.collection("user_question")
                 .add(userAnswerData)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         Log.d(TAG, "Answer saved successfully.");
+                        if (isCorrect) {
+                            incrementUserXP(questionScore); // Pass the score for XP increment
+                        }
                     } else {
                         Log.e(TAG, "Failed to save answer", task.getException());
                     }
                 });
     }
+    private void incrementUserXP(int score) {
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        db.runTransaction(transaction -> {
+                    DocumentSnapshot snapshot = transaction.get(userRef);
+                    Long currentXP = snapshot.getLong("xp");
+                    if (currentXP == null) currentXP = 0L; // Default XP if not set
+
+                    // Increment XP by the score of the current question
+                    transaction.update(userRef, "xp", currentXP + score);
+                    return null;
+                }).addOnSuccessListener(aVoid -> Log.d(TAG, "User XP incremented by " + score + " successfully."))
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to increment user XP", e));
+    }
+
 
     private void highlightAnswer(Question question, String selectedAnswer, boolean isCorrect) {
         if (optionA.getText().equals(selectedAnswer)) optionA.setBackgroundColor(isCorrect ? Color.GREEN : Color.RED);

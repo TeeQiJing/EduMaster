@@ -304,6 +304,7 @@ private void loadContentInPattern(String lessonId, String pattern) {
     // Fetch quizzes
     db.collection("quiz")
             .whereEqualTo("ref", lessonRef)
+            .orderBy("groupId")
             .get()
             .addOnCompleteListener(task -> {
                 if (task.isSuccessful() && task.getResult() != null) {
@@ -337,6 +338,7 @@ private void loadContentInPattern(String lessonId, String pattern) {
 
         chapterAdapter.notifyDataSetChanged();
     }
+
 
 
     private void enrollInLesson(String userId, String lessonId) {
