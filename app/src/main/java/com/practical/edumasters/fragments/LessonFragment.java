@@ -2,13 +2,7 @@
 
 package com.practical.edumasters.fragments;
 
-import android.app.Activity;
-import android.content.Intent;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.net.Uri;
 import android.os.Bundle;
-import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,20 +22,20 @@ import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.ChapterAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
-import com.practical.edumasters.models.User;
 
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -55,10 +49,8 @@ public class LessonFragment extends Fragment {
     private FirebaseAuth mAuth;
     private static final String TAG = "LessonFragment";
 
-
     private TextView tvLessonTitle;
     private TextView tvLessonRatingText;
-
     private ConstraintLayout CLbtn;
     private ImageView lessonImageView, btnFav;
     private RecyclerView chapterRecyclerView;
@@ -69,6 +61,7 @@ public class LessonFragment extends Fragment {
     private String lessonId;
     private boolean isEnrolled = false; // Flag to check enrollment status
     private boolean isFavorited = false;
+    private Map<String, Boolean> completionStateMap; // To track completion state of chapters and quizzes
 
     public LessonFragment() {
         // Required empty public constructor
@@ -80,6 +73,7 @@ public class LessonFragment extends Fragment {
         db = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
         contentList = new ArrayList<>();
+        completionStateMap = new HashMap<>();
     }
 
     @Override
@@ -93,17 +87,14 @@ public class LessonFragment extends Fragment {
         chapterRecyclerView = rootView.findViewById(R.id.chapterRecycleView);
         btnEnroll = rootView.findViewById(R.id.btnEnroll);
         btnFav = rootView.findViewById(R.id.btnFav);
-
         CLbtn = rootView.findViewById(R.id.CLbtn);
         MaterialToolbar toolbar = rootView.findViewById(R.id.materialToolbar);
         toolbar.setNavigationOnClickListener(v -> requireActivity().onBackPressed());
         btnEnroll.setVisibility(View.GONE);
 
-
-
         chapterRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
 
-        chapterAdapter = new ChapterAdapter(getContext(), contentList, item -> {
+        chapterAdapter = new ChapterAdapter(getContext(), contentList, completionStateMap, item -> {
             if (!isEnrolled) {
                 Toast.makeText(getContext(), "Please enroll in the lesson first.", Toast.LENGTH_SHORT).show();
             } else {
@@ -165,8 +156,6 @@ public class LessonFragment extends Fragment {
             }
         });
 
-
-
         chapterRecyclerView.setAdapter(chapterAdapter);
 
         lessonId = getArguments().getString("lessonId");
@@ -178,30 +167,20 @@ public class LessonFragment extends Fragment {
             enrollInLesson(userId, lessonId);
         });
 
-
-
         btnFav.setOnClickListener(v -> {
             // Load the click animation
             Animation clickAnimation = AnimationUtils.loadAnimation(getContext(), R.anim.scale_click_animation);
-
-            // Start the animation
             v.startAnimation(clickAnimation);
 
             // Toggle favorite status
             if (isFavorited) {
-                // Handle unfavorite
                 isFavorited = false;
                 btnFav.setImageResource(R.drawable.ic_love); // Replace with "not favorite" icon
             } else {
-                // Handle favorite
                 isFavorited = true;
                 btnFav.setImageResource(R.drawable.ic_love_filled); // Replace with "favorite" icon
             }
-
-            // Additional logic (like saving the state or updating the UI can go here)
         });
-
-
 
         return rootView;
     }
@@ -244,8 +223,8 @@ public class LessonFragment extends Fragment {
                 });
     }
 
-    private void loadLessonImage(String title){
-        switch (title){
+    private void loadLessonImage(String title) {
+        switch (title) {
             case "GitHub":
                 lessonImageView.setImageResource(R.drawable.ic_github);
                 break;
@@ -255,7 +234,6 @@ public class LessonFragment extends Fragment {
             case "HTML & CSS":
                 lessonImageView.setImageResource(R.drawable.ic_html);
                 break;
-
             case "Python":
                 lessonImageView.setImageResource(R.drawable.ic_python);
                 break;
@@ -267,76 +245,216 @@ public class LessonFragment extends Fragment {
         }
     }
 
+    private void loadContentInPattern(String lessonId, String pattern) {
+        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
 
-private void loadContentInPattern(String lessonId, String pattern) {
-    DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+        List<Chapter> chapters = new ArrayList<>();
+        List<Quiz> quizzes = new ArrayList<>();
 
-    List<Chapter> chapters = new ArrayList<>();
-    List<Quiz> quizzes = new ArrayList<>();
+        // Counter to track completed tasks
+        AtomicInteger tasksCompleted = new AtomicInteger(0);
+        int totalTasks = 2; // Number of tasks to complete (chapters + quizzes)
 
-    // Counter to track completed tasks
-    AtomicInteger tasksCompleted = new AtomicInteger(0);
-    int totalTasks = 2; // Number of tasks to complete (chapters + quizzes)
+        // Define a common callback for when data is ready
+        Runnable onDataReady = () -> {
+            if (tasksCompleted.incrementAndGet() == totalTasks) {
+                arrangeContentInPattern(chapters, quizzes, pattern);
+            }
+        };
 
-    // Define a common callback for when data is ready
-    Runnable onDataReady = () -> {
-        if (tasksCompleted.incrementAndGet() == totalTasks) {
-            arrangeContentInPattern(chapters, quizzes, pattern);
+        // Fetch chapters
+        db.collection("chapters")
+                .whereEqualTo("ref", lessonRef)
+                .orderBy("groupId")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            chapters.add(Chapter.fromSnapshot(doc));
+                        }
+                    } else {
+                        Log.e(TAG, "Error fetching chapters", task.getException());
+                    }
+                    onDataReady.run(); // Notify that chapters are ready
+                });
+
+        // Fetch quizzes
+        db.collection("quiz")
+                .whereEqualTo("ref", lessonRef)
+                .orderBy("groupId")
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        for (DocumentSnapshot doc : task.getResult()) {
+                            quizzes.add(Quiz.fromSnapshot(doc));
+                        }
+                    } else {
+                        Log.e(TAG, "Error fetching quizzes", task.getException());
+                    }
+                    onDataReady.run(); // Notify that quizzes are ready
+                });
+    }
+
+//    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
+//        if (pattern == null || pattern.isEmpty()) {
+//            return;
+//        }
+//
+//        // Clear the existing contentList to avoid duplicates
+//        contentList.clear();
+//
+//        int chapterIndex = 0, quizIndex = 0;
+//
+//        for (char type : pattern.toCharArray()) {
+//            if (type == 'C' && chapterIndex < chapters.size()) {
+//                Chapter chapter = chapters.get(chapterIndex++);
+//                checkChapterCompletion(chapter);  // Check if this chapter is completed
+//                contentList.add(chapter);
+//            } else if (type == 'Q' && quizIndex < quizzes.size()) {
+//                Quiz quiz = quizzes.get(quizIndex++);
+//                checkQuizCompletion(quiz);  // Check if this quiz is completed
+//                contentList.add(quiz);
+//            }
+//        }
+//
+//        chapterAdapter.notifyDataSetChanged();
+//    }
+private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
+    if (pattern == null || pattern.isEmpty()) {
+        Log.d("Pattern", "Pattern is null or empty.");
+        return;
+    }
+
+    // Clear the existing contentList to avoid duplicates
+    contentList.clear();
+
+    int chapterIndex = 0, quizIndex = 0;
+    int totalItems = pattern.length();  // Total items based on pattern length
+    int completedItems = 0;
+
+    // Log size of chapters and quizzes lists
+    Log.d("Data", "Chapters size: " + chapters.size() + ", Quizzes size: " + quizzes.size());
+
+    // Track the completion states for all chapters and quizzes
+    List<Task<QuerySnapshot>> completionTasks = new ArrayList<>();
+
+    // Loop through pattern and process chapters/quizzes
+    for (char type : pattern.toCharArray()) {
+        if (type == 'C' && chapterIndex < chapters.size()) {
+            Chapter chapter = chapters.get(chapterIndex++);
+            checkChapterCompletion(chapter, completionTasks);  // Check if this chapter is completed
+            contentList.add(chapter);
+        } else if (type == 'Q' && quizIndex < quizzes.size()) {
+            Quiz quiz = quizzes.get(quizIndex++);
+            checkQuizCompletion(quiz, completionTasks);  // Check if this quiz is completed
+            contentList.add(quiz);
         }
-    };
+    }
 
-    // Fetch chapters
-    db.collection("chapters")
-            .whereEqualTo("ref", lessonRef)
-            .orderBy("groupId")
-            .get()
+    // Use Tasks.whenAll() to wait for all completion tasks to finish
+    Tasks.whenAll(completionTasks)
             .addOnCompleteListener(task -> {
-                if (task.isSuccessful() && task.getResult() != null) {
-                    for (DocumentSnapshot doc : task.getResult()) {
-                        chapters.add(Chapter.fromSnapshot(doc));
-                    }
+                if (task.isSuccessful()) {
+                    // Calculate progress once all tasks are completed
+                    calculateProgress(totalItems);
                 } else {
-                    Log.e(TAG, "Error fetching chapters", task.getException());
+                    Log.e("Error", "Failed to complete one or more tasks");
                 }
-                onDataReady.run(); // Notify that chapters are ready
             });
 
-    // Fetch quizzes
-    db.collection("quiz")
-            .whereEqualTo("ref", lessonRef)
-            .orderBy("groupId")
-            .get()
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful() && task.getResult() != null) {
-                    for (DocumentSnapshot doc : task.getResult()) {
-                        quizzes.add(Quiz.fromSnapshot(doc));
-                    }
-                } else {
-                    Log.e(TAG, "Error fetching quizzes", task.getException());
-                }
-                onDataReady.run(); // Notify that quizzes are ready
-            });
+    chapterAdapter.notifyDataSetChanged();
 }
 
-    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-        if (pattern == null || pattern.isEmpty()) {
-            return;
-        }
+    private void checkChapterCompletion(Chapter chapter, List<Task<QuerySnapshot>> completionTasks) {
+        String userId = mAuth.getCurrentUser().getUid();
+        Task<QuerySnapshot> task = db.collection("chapter_progress")
+                .whereEqualTo("chapterIdRef", db.collection("chapters").document(chapter.getId()))
+                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful() && !task1.getResult().isEmpty()) {
+                        completionStateMap.put(chapter.getId(), true); // Chapter completed
+                    } else {
+                        completionStateMap.put(chapter.getId(), false); // Chapter not completed
+                    }
+                    // Log the completion state
+                    Log.d(TAG, "Chapter Completion State: " + chapter.getId() + " " + completionStateMap.get(chapter.getId()));
+                });
+        completionTasks.add(task); // Add task to the list of tasks to track
+    }
 
-        // Clear the existing contentList to avoid duplicates
-        contentList.clear();
+    private void checkQuizCompletion(Quiz quiz, List<Task<QuerySnapshot>> completionTasks) {
+        String userId = mAuth.getCurrentUser().getUid();
+        Task<QuerySnapshot> task = db.collection("quiz_progress")
+                .whereEqualTo("quizIdRef", db.collection("quiz").document(quiz.getId()))
+                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+                .get()
+                .addOnCompleteListener(task1 -> {
+                    if (task1.isSuccessful() && !task1.getResult().isEmpty()) {
+                        completionStateMap.put(quiz.getId(), true); // Quiz completed
+                    } else {
+                        completionStateMap.put(quiz.getId(), false); // Quiz not completed
+                    }
+                    // Log the completion state
+                    Log.d(TAG, "Quiz Completion State: " + quiz.getId() + " " + completionStateMap.get(quiz.getId()));
+                });
+        completionTasks.add(task); // Add task to the list of tasks to track
+    }
 
-        int chapterIndex = 0, quizIndex = 0;
-
-        for (char type : pattern.toCharArray()) {
-            if (type == 'C' && chapterIndex < chapters.size()) {
-                contentList.add(chapters.get(chapterIndex++));
-            } else if (type == 'Q' && quizIndex < quizzes.size()) {
-                contentList.add(quizzes.get(quizIndex++));
+    private void calculateProgress(int totalItems) {
+        // Calculate completed items
+        int completedItems = 0;
+        for (Boolean state : completionStateMap.values()) {
+            if (state) {
+                completedItems++;
             }
         }
 
-        chapterAdapter.notifyDataSetChanged();
+        // Calculate progress as a percentage
+        String progressString = totalItems > 0
+                ? String.valueOf(completedItems * 100 / totalItems)  // Save as percentage string, e.g., "50"
+                : "0";  // If no items, progress is 0%
+
+        // Log progress string
+        Log.d("Progress", "Progress String: " + progressString);
+
+        // Now update the progress in Firestore after checking all completion states
+        updateProgressInFirestore(progressString);
+    }
+
+    private void updateProgressInFirestore(String progressString) {
+        String userId = mAuth.getCurrentUser().getUid();
+        Log.d(TAG, "Progress String: " + progressString);
+        Log.d(TAG, "UID: " + userId);
+        Log.d(TAG, "Lesson Id: " + lessonId);
+
+        // Create references to the user and lesson documents
+        DocumentReference userRef = db.collection("users").document(userId);
+        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+
+        // Query to find the document where both userId (userRef) and lessonId (lessonRef) match
+        db.collection("current_lesson")
+                .whereEqualTo("userId", userRef)
+                .whereEqualTo("lessonId", lessonRef)
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                        // Assuming only one matching document is found
+                        DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                        Log.d(TAG, "Current Lesson Document Id: " + document.getId());
+                        db.collection("current_lesson")
+                                .document(document.getId())  // Get the document ID from the result
+                                .update("progress", progressString)  // Update only the progress field
+                                .addOnSuccessListener(aVoid -> {
+                                    Log.d(TAG, "Progress updated successfully");
+                                })
+                                .addOnFailureListener(e -> {
+                                    Log.e(TAG, "Error updating progress", e);
+                                });
+                    } else {
+                        Log.e(TAG, "No matching progress document found for the user and lesson.");
+                    }
+                });
     }
 
 
@@ -345,21 +463,18 @@ private void loadContentInPattern(String lessonId, String pattern) {
         CollectionReference currentLessonRef = db.collection("current_lesson");
 
         Map<String, Object> currentLessonData = new HashMap<>();
-        currentLessonData.put("userId", db.collection("users").document(userId));
-        currentLessonData.put("lessonId", db.collection("total_lesson").document(lessonId));
-        currentLessonData.put("progress", "0");
+        currentLessonData.put("userId", userId);
+        currentLessonData.put("lessonId", lessonId);
 
         currentLessonRef.add(currentLessonData)
                 .addOnSuccessListener(documentReference -> {
-                    isEnrolled = true;
+                    Toast.makeText(getContext(), "Successfully enrolled in the lesson!", Toast.LENGTH_SHORT).show();
                     btnEnroll.setVisibility(View.GONE);
-                    CLbtn.setVisibility(View.GONE);
-                    Toast.makeText(getContext(), "Enrolled successfully!", Toast.LENGTH_SHORT).show();
                 })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Enrollment failed!", Toast.LENGTH_SHORT).show();
-                });
+                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to enroll in the lesson.", Toast.LENGTH_SHORT).show());
     }
+
+
 }
 
 

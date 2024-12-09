@@ -13,7 +13,7 @@
         android:layout_height="50dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
-        android:background="@drawable/circle_background"
+        android:background="@drawable/circle_background_inactive"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
@@ -22,6 +22,7 @@
             android:layout_width="38dp"
             android:layout_height="50dp"
             android:layout_gravity="center"
+            android:padding="5dp"
             android:src="@drawable/ic_google" />
     </FrameLayout>
 
