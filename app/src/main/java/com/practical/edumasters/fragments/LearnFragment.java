@@ -1,5 +1,8 @@
 package com.practical.edumasters.fragments;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.activity.OnBackPressedCallback;
@@ -13,15 +16,18 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -34,6 +40,8 @@ import com.practical.edumasters.models.User;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 
 public class LearnFragment extends Fragment {
@@ -93,6 +101,82 @@ public class LearnFragment extends Fragment {
         popularRecView = view.findViewById(R.id.popular_lesson_rec_view);
         popularRecView.setAdapter(popularLessonCardAdapter);
         popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
+        // Check login streak and show dialog
+        checkAndShowLoginStreakDialog();
+    }
+    private void checkAndShowLoginStreakDialog() {
+        String userId = mAuth.getCurrentUser().getUid();
+        DocumentReference loginStreakRef = db.collection("login_streak").document(userId);
+
+        // Attach a real-time listener to the login streak document
+        loginStreakRef.addSnapshotListener((documentSnapshot, error) -> {
+            if (error != null) {
+                Log.e("LearnFragment", "Error listening to login streak changes", error);
+                return;
+            }
+
+            if (documentSnapshot != null && documentSnapshot.exists()) {
+                Boolean isPointCollected = documentSnapshot.getBoolean("isPointCollected");
+                Long streak = documentSnapshot.getLong("streak");
+
+                if (isPointCollected == null || streak == null) {
+                    Log.e("LearnFragment", "Login streak document is missing required fields.");
+                    return;
+                }
+
+                Log.d("Streak", "Real-time streak: " + streak);
+
+                if (!isPointCollected) {
+                    // Show the login streak dialog if isLogin is false
+                    showLoginStreakDialog(loginStreakRef, streak);
+                } else {
+                    Log.d("LoginStreak", "Dialog already shown today, skipping.");
+                }
+            } else {
+                Log.e("LearnFragment", "Login streak document does not exist.");
+            }
+        });
+    }
+
+
+    private void showLoginStreakDialog(DocumentReference loginStreakRef, long streak) {
+        // Inflate the dialog layout
+        LayoutInflater inflater = LayoutInflater.from(requireContext());
+        View dialogView = inflater.inflate(R.layout.dialog_login_streak, null);
+
+        // Initialize dialog components
+        TextView streakNumberTextView = dialogView.findViewById(R.id.streak_number);
+        streakNumberTextView.setText(String.valueOf(streak)); // Set streak number
+
+        AlertDialog.Builder dialogBuilder = new AlertDialog.Builder(requireContext());
+        dialogBuilder.setView(dialogView);
+
+        AlertDialog streakDialog = dialogBuilder.create();
+        streakDialog.show();
+
+        // Collect Points button
+        Button collectPointsButton = dialogView.findViewById(R.id.collect_points_button);
+        int points = (int) streak * 5;
+        collectPointsButton.setOnClickListener(v -> {
+
+
+
+            String userId = mAuth.getCurrentUser().getUid();
+            DocumentReference userPointsRef = db.collection("users").document(userId);
+
+            userPointsRef.update("xp", FieldValue.increment(points))
+                    .addOnSuccessListener(aVoid -> {
+                        loginStreakRef.update("isPointCollected", true);
+                        Log.d("LoginStreak", "isPointCollected updated to true after showing dialog");
+                        Toast.makeText(requireContext(), points + " Points Collected!", Toast.LENGTH_SHORT).show();
+                        streakDialog.dismiss();
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e("LoginStreak", "Error updating isPointCollected field", e);
+                        Toast.makeText(requireContext(), "Error collecting points: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            streakDialog.dismiss();
+        });
     }
 
     private void fetchCurrentLessonData() {

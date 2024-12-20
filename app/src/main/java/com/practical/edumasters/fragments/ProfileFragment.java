@@ -279,7 +279,7 @@ public class ProfileFragment extends Fragment {
         cancelButton.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog on cancel
 
         // Set up Logout button
-        Button logoutButton = dialogView.findViewById(R.id.logout_button);
+        Button logoutButton = dialogView.findViewById(R.id.collect_points_button);
         logoutButton.setOnClickListener(v -> {
             dialog.dismiss(); // Dismiss dialog
             logout(); // Call the logout method
@@ -288,6 +288,7 @@ public class ProfileFragment extends Fragment {
         // Show the dialog
         dialog.show();
     }
+
 
     private void logout() {
         mAuth.signOut();
