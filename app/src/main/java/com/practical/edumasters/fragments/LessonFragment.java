@@ -97,6 +97,7 @@ public class LessonFragment extends Fragment {
         chapterAdapter = new ChapterAdapter(getContext(), contentList, completionStateMap, item -> {
             if (!isEnrolled) {
                 Toast.makeText(getContext(), "Please enroll in the lesson first.", Toast.LENGTH_SHORT).show();
+                return;
             } else {
                 if (item instanceof Chapter) {  // Check if the item is a Chapter
                     // Handle chapter click
@@ -185,15 +186,37 @@ public class LessonFragment extends Fragment {
         return rootView;
     }
 
+//    private void checkEnrollmentStatus() {
+//        String userId = mAuth.getCurrentUser().getUid();
+//
+//        db.collection("current_lesson")
+//                .whereEqualTo("userId", db.collection("users").document(userId))
+//                .whereEqualTo("lessonId", db.collection("total_lesson").document(lessonId))
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+//                        isEnrolled = true;
+//                        btnEnroll.setVisibility(View.GONE);
+//                        CLbtn.setVisibility(View.GONE);
+//                    } else {
+//                        isEnrolled = false;
+//                        btnEnroll.setVisibility(View.VISIBLE);
+//                    }
+//                });
+//    }
     private void checkEnrollmentStatus() {
         String userId = mAuth.getCurrentUser().getUid();
 
         db.collection("current_lesson")
                 .whereEqualTo("userId", db.collection("users").document(userId))
                 .whereEqualTo("lessonId", db.collection("total_lesson").document(lessonId))
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e("Firestore", "Listen failed.", error);
+                        return;
+                    }
+
+                    if (snapshots != null && !snapshots.isEmpty()) {
                         isEnrolled = true;
                         btnEnroll.setVisibility(View.GONE);
                         CLbtn.setVisibility(View.GONE);
@@ -201,6 +224,8 @@ public class LessonFragment extends Fragment {
                         isEnrolled = false;
                         btnEnroll.setVisibility(View.VISIBLE);
                     }
+                    // Notify the adapter to refresh UI
+                    chapterAdapter.notifyDataSetChanged();
                 });
     }
 
