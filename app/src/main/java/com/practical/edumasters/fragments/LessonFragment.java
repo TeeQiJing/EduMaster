@@ -186,24 +186,6 @@ public class LessonFragment extends Fragment {
         return rootView;
     }
 
-//    private void checkEnrollmentStatus() {
-//        String userId = mAuth.getCurrentUser().getUid();
-//
-//        db.collection("current_lesson")
-//                .whereEqualTo("userId", db.collection("users").document(userId))
-//                .whereEqualTo("lessonId", db.collection("total_lesson").document(lessonId))
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
-//                        isEnrolled = true;
-//                        btnEnroll.setVisibility(View.GONE);
-//                        CLbtn.setVisibility(View.GONE);
-//                    } else {
-//                        isEnrolled = false;
-//                        btnEnroll.setVisibility(View.VISIBLE);
-//                    }
-//                });
-//    }
     private void checkEnrollmentStatus() {
         String userId = mAuth.getCurrentUser().getUid();
 
@@ -320,75 +302,52 @@ public class LessonFragment extends Fragment {
                 });
     }
 
-//    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-//        if (pattern == null || pattern.isEmpty()) {
-//            return;
-//        }
-//
-//        // Clear the existing contentList to avoid duplicates
-//        contentList.clear();
-//
-//        int chapterIndex = 0, quizIndex = 0;
-//
-//        for (char type : pattern.toCharArray()) {
-//            if (type == 'C' && chapterIndex < chapters.size()) {
-//                Chapter chapter = chapters.get(chapterIndex++);
-//                checkChapterCompletion(chapter);  // Check if this chapter is completed
-//                contentList.add(chapter);
-//            } else if (type == 'Q' && quizIndex < quizzes.size()) {
-//                Quiz quiz = quizzes.get(quizIndex++);
-//                checkQuizCompletion(quiz);  // Check if this quiz is completed
-//                contentList.add(quiz);
-//            }
-//        }
-//
-//        chapterAdapter.notifyDataSetChanged();
-//    }
-private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-    if (pattern == null || pattern.isEmpty()) {
-        Log.d("Pattern", "Pattern is null or empty.");
-        return;
-    }
 
-    // Clear the existing contentList to avoid duplicates
-    contentList.clear();
-
-    int chapterIndex = 0, quizIndex = 0;
-    int totalItems = pattern.length();  // Total items based on pattern length
-    int completedItems = 0;
-
-    // Log size of chapters and quizzes lists
-    Log.d("Data", "Chapters size: " + chapters.size() + ", Quizzes size: " + quizzes.size());
-
-    // Track the completion states for all chapters and quizzes
-    List<Task<QuerySnapshot>> completionTasks = new ArrayList<>();
-
-    // Loop through pattern and process chapters/quizzes
-    for (char type : pattern.toCharArray()) {
-        if (type == 'C' && chapterIndex < chapters.size()) {
-            Chapter chapter = chapters.get(chapterIndex++);
-            checkChapterCompletion(chapter, completionTasks);  // Check if this chapter is completed
-            contentList.add(chapter);
-        } else if (type == 'Q' && quizIndex < quizzes.size()) {
-            Quiz quiz = quizzes.get(quizIndex++);
-            checkQuizCompletion(quiz, completionTasks);  // Check if this quiz is completed
-            contentList.add(quiz);
+    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
+        if (pattern == null || pattern.isEmpty()) {
+            Log.d("Pattern", "Pattern is null or empty.");
+            return;
         }
+
+        // Clear the existing contentList to avoid duplicates
+        contentList.clear();
+
+        int chapterIndex = 0, quizIndex = 0;
+        int totalItems = pattern.length();  // Total items based on pattern length
+        int completedItems = 0;
+
+        // Log size of chapters and quizzes lists
+        Log.d("Data", "Chapters size: " + chapters.size() + ", Quizzes size: " + quizzes.size());
+
+        // Track the completion states for all chapters and quizzes
+        List<Task<QuerySnapshot>> completionTasks = new ArrayList<>();
+
+        // Loop through pattern and process chapters/quizzes
+        for (char type : pattern.toCharArray()) {
+            if (type == 'C' && chapterIndex < chapters.size()) {
+                Chapter chapter = chapters.get(chapterIndex++);
+                checkChapterCompletion(chapter, completionTasks);  // Check if this chapter is completed
+                contentList.add(chapter);
+            } else if (type == 'Q' && quizIndex < quizzes.size()) {
+                Quiz quiz = quizzes.get(quizIndex++);
+                checkQuizCompletion(quiz, completionTasks);  // Check if this quiz is completed
+                contentList.add(quiz);
+            }
+        }
+
+        // Use Tasks.whenAll() to wait for all completion tasks to finish
+        Tasks.whenAll(completionTasks)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Calculate progress once all tasks are completed
+                        calculateProgress(totalItems);
+                    } else {
+                        Log.e("Error", "Failed to complete one or more tasks");
+                    }
+                });
+
+        chapterAdapter.notifyDataSetChanged();
     }
-
-    // Use Tasks.whenAll() to wait for all completion tasks to finish
-    Tasks.whenAll(completionTasks)
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    // Calculate progress once all tasks are completed
-                    calculateProgress(totalItems);
-                } else {
-                    Log.e("Error", "Failed to complete one or more tasks");
-                }
-            });
-
-    chapterAdapter.notifyDataSetChanged();
-}
 
     private void checkChapterCompletion(Chapter chapter, List<Task<QuerySnapshot>> completionTasks) {
         String userId = mAuth.getCurrentUser().getUid();
