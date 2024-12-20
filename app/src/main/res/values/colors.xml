@@ -15,5 +15,10 @@
     <color name="blue">#1E88E5</color>
     <color name="codeBackground">#4E4241</color>
     <color name="purple_200">#BB86FC</color>
+    <color name="popup_background_dim">#80000000</color>
+    <color name="whiteIconTint">#FFFFFFFF</color>
+    <color name="blackIconTint">#80000000</color>
+    <color name="liked">#7512FF</color>
+    <color name="unliked">#E9E9E9</color>
 
 </resources>

@@ -13,5 +13,9 @@
         <item name="android:fitsSystemWindows">false</item>
     </style>
 
+    <style name="fabGradient" parent="Widget.Design.FloatingActionButton">
+        <item name="android:foreground">@drawable/fab_gradient</item>
+    </style>
+
     <style name="Theme.EduMasters" parent="Base.Theme.EduMasters" />
 </resources>
