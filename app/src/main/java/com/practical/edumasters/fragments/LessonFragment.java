@@ -462,16 +462,28 @@ private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes,
     private void enrollInLesson(String userId, String lessonId) {
         CollectionReference currentLessonRef = db.collection("current_lesson");
 
+        DocumentReference userIdRef = db.collection("users").document(userId);
+        DocumentReference lessonIdRef = db.collection("total_lesson").document(lessonId);
         Map<String, Object> currentLessonData = new HashMap<>();
-        currentLessonData.put("userId", userId);
-        currentLessonData.put("lessonId", lessonId);
+        currentLessonData.put("userId", userIdRef);
+        currentLessonData.put("lessonId", lessonIdRef);
+        currentLessonData.put("progress", "0");
 
         currentLessonRef.add(currentLessonData)
                 .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(getContext(), "Successfully enrolled in the lesson!", Toast.LENGTH_SHORT).show();
+                    // Update isEnrolled status immediately
+                    isEnrolled = true;
                     btnEnroll.setVisibility(View.GONE);
+                    CLbtn.setVisibility(View.GONE);
+
+                    Toast.makeText(getContext(), "Successfully enrolled in the lesson!", Toast.LENGTH_SHORT).show();
+
+                    // Notify the adapter to update
+                    chapterAdapter.notifyDataSetChanged();
                 })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to enroll in the lesson.", Toast.LENGTH_SHORT).show());
+                .addOnFailureListener(e ->
+                        Toast.makeText(getContext(), "Failed to enroll in the lesson.", Toast.LENGTH_SHORT).show()
+                );
     }
 
 
