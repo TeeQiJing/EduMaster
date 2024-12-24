@@ -185,9 +185,13 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Validate password length
-        if (password.isEmpty() || password.length() < 6) {
-            Toast.makeText(this, "Password must be at least 6 characters", Toast.LENGTH_SHORT).show();
+        // Validate password complexity
+        if (password.isEmpty() || password.length() < 8 ||
+                !password.matches(".*[A-Z].*") ||        // At least one uppercase letter
+                !password.matches(".*[a-z].*") ||        // At least one lowercase letter
+                !password.matches(".*\\d.*") ||          // At least one number
+                !password.matches(".*[@#$%^&+=!].*")) {  // At least one special character
+            Toast.makeText(this, "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", Toast.LENGTH_LONG).show();
             return;
         }
 
@@ -257,4 +261,5 @@ public class RegisterActivity extends AppCompatActivity {
     private String hashPassword(String plainPassword) {
         return BCrypt.hashpw(plainPassword, BCrypt.gensalt(12)); // 12 is the work factor
     }
+
 }
