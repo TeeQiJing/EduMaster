@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.practical.edumasters.R;
 import com.practical.edumasters.activities.LoginActivity;
 import com.practical.edumasters.models.User;
@@ -39,7 +40,7 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView tvUsername, tvPoints, tvCourses, tvBadge;
-    private LinearLayout btnCertificate, btnFeedback, btnSettings, btnLogout;
+    private LinearLayout btnCertificate, btnFeedback, btnSettings, btnLogout, btnBadge;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -67,6 +68,7 @@ public class ProfileFragment extends Fragment {
         btnSettings = rootView.findViewById(R.id.btnSettings);
         btnLogout = rootView.findViewById(R.id.btnLogout);
         tvBadge = rootView.findViewById(R.id.tvBadge);
+        btnBadge = rootView.findViewById(R.id.btnBadges);
 
 
 
@@ -89,10 +91,61 @@ public class ProfileFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
+        btnBadge.setOnClickListener(v -> checkAndNavigate());
         btnSettings.setOnClickListener(v -> navigateToSettings());
         btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         return rootView;
+    }
+
+    private void checkAndNavigate() {
+        String userId = mAuth.getCurrentUser().getUid();
+        db.collection("user_badges")
+                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        boolean hasBadges = false;
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            DocumentReference badgeIdRef = document.getDocumentReference("badgeIdRef");
+                            if (badgeIdRef != null) {
+                                hasBadges = true;
+                                break; // If at least one badge is found, stop further checks
+                            }
+                        }
+
+                        if (hasBadges) {
+                            // Navigate to BadgeFragment
+                            requireActivity().getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .setCustomAnimations(
+                                            R.anim.slide_in_right,
+                                            R.anim.slide_out_left,
+                                            R.anim.slide_in_left,
+                                            R.anim.slide_out_right
+                                    )
+                                    .replace(R.id.fragment_container, new BadgeFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                            // Navigate to DefaultBadgeFragment
+                            requireActivity().getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .setCustomAnimations(
+                                            R.anim.slide_in_right,
+                                            R.anim.slide_out_left,
+                                            R.anim.slide_in_left,
+                                            R.anim.slide_out_right
+                                    )
+                                    .replace(R.id.fragment_container, new DefaultBadgeFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        }
+                    } else {
+                        Log.w("BadgeCheck", "Error checking badges.", task.getException());
+                    }
+                });
     }
 
     private void loadUserProfile() {

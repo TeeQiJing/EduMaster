@@ -1,5 +1,6 @@
 package com.practical.edumasters.fragments;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -37,6 +39,7 @@ import java.util.Map;
 public class QuizFragment extends Fragment {
     private static final String TAG = "QuizFragment";
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
     private TextView questionTitle;
     private ImageView questionImage;
     private Button optionA, optionB, optionC, optionD, nextButton, previousButton;
@@ -222,7 +225,9 @@ public class QuizFragment extends Fragment {
                                 .add(progressData)
                                 .addOnSuccessListener(documentReference -> {
                                     Log.d(TAG, "Quiz progress successfully saved.");
-                                    navigateBack(); // Navigate to the previous fragment
+                                     // Navigate to the previous fragment
+
+                                    navigateBack();
                                 })
                                 .addOnFailureListener(e -> Log.e(TAG, "Error saving quiz progress", e));
                     } else if (task.isSuccessful()) {
@@ -233,6 +238,7 @@ public class QuizFragment extends Fragment {
                     }
                 });
     }
+
 
     // Helper method to navigate back to the previous fragment
     private void navigateBack() {
