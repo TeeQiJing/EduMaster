@@ -1,4 +1,4 @@
-package com.practical.edumasters.fragments;//package com.practical.edumasters.fragments;
+package com.practical.edumasters.fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -92,7 +92,20 @@ public class ProfileFragment extends Fragment {
                     .commit();
         });
         btnBadge.setOnClickListener(v -> checkAndNavigate());
-        btnSettings.setOnClickListener(v -> navigateToSettings());
+        btnSettings.setOnClickListener(v -> {
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .setCustomAnimations(
+                                    R.anim.slide_in_right,  // Animation for fragment entry
+                                    R.anim.slide_out_left, // Animation for fragment exit
+                                    R.anim.slide_in_left,  // Animation for returning to the fragment
+                                    R.anim.slide_out_right // Animation for exiting back
+                            )
+                            .replace(R.id.fragment_container, new SettingsFragment()) // Replace `fragment_container` with your container ID
+                            .addToBackStack(null)
+                            .commit();
+        }
+        );
         btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         return rootView;
@@ -205,7 +218,7 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
-    private void openImagePicker() {
+    public void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -218,15 +231,10 @@ public class ProfileFragment extends Fragment {
             Uri imageUri = data.getData();
             if (imageUri != null) {
                 try {
-                    // Validate image size before uploading
-//                    if (isImageSizeValid(imageUri)) {
                         String base64Image = compressAndConvertToBase64(imageUri);
                         if (base64Image != null) {
                             uploadAvatar(base64Image);
                         }
-//                    } else {
-//                        Toast.makeText(getContext(), "Image is too large. Please choose another image.", Toast.LENGTH_SHORT).show();
-//                    }
                 } catch (Exception e) {
                     Log.e("ProfileFragment", "Error processing image", e);
                 }
@@ -234,22 +242,8 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private boolean isImageSizeValid(Uri imageUri) {
-        try {
-            InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            if (bitmap != null) {
-                int imageSizeInKB = bitmap.getByteCount() / 1024; // Convert bytes to KB
-                return imageSizeInKB < 500; // 500 KB limit
-            }
-        } catch (Exception e) {
-            Log.e("ProfileFragment", "Error checking image size", e);
-        }
-        return false;
-    }
-
-    // Compress and convert image to Base64 (modified to limit size to 1000KB)
-    private String compressAndConvertToBase64(Uri imageUri) throws Exception {
+    // Compress and convert image to Base64
+    public String compressAndConvertToBase64(Uri imageUri) throws Exception {
         InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
@@ -262,13 +256,7 @@ public class ProfileFragment extends Fragment {
 
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-        // Check if compressed byte array is still too large
-//        if (byteArray.length > 1024 * 1000) { // 1MB limit
-//            Toast.makeText(getContext(), "Image is too large. Please select a smaller image.", Toast.LENGTH_SHORT).show();
-//            return null;
-//        }
-
-        // Convert to Base64 and check the size
+        // Convert to Base64
         String base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
         // Check if the Base64 string size exceeds Firestore document size limit (1MB)
@@ -282,7 +270,7 @@ public class ProfileFragment extends Fragment {
 
 
 
-    private void uploadAvatar(String base64Image) {
+    public void uploadAvatar(String base64Image) {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference userDocRef = db.collection("users").document(userId);
 
@@ -296,7 +284,7 @@ public class ProfileFragment extends Fragment {
         });
     }
 
-    private void loadAvatar(String base64Image) {
+    public void loadAvatar(String base64Image) {
         byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         avatarImageView.setImageBitmap(decodedByte);
@@ -306,15 +294,6 @@ public class ProfileFragment extends Fragment {
         // Implement navigation to certificate activity or fragment
         Toast.makeText(getContext(), "Navigating to Certificate", Toast.LENGTH_SHORT).show();
     }
-
-
-
-    private void navigateToSettings() {
-        // Implement navigation to settings activity or fragment
-        Toast.makeText(getContext(), "Navigating to Settings", Toast.LENGTH_SHORT).show();
-    }
-
-
 
     private void showLogoutConfirmationDialog() {
         // Inflate the custom layout for the dialog

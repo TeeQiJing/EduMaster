@@ -167,12 +167,13 @@ public class RegisterActivity extends AppCompatActivity {
             String username = binding.etUsername.getText().toString().trim();
             String email = binding.etEmail.getText().toString().trim();
             String password = binding.etPassword.getText().toString().trim();
+            String confirmPassword = binding.etConfirmPassword.getText().toString().trim();
 
-            signUp(email, password, username);
+            signUp(email, password, confirmPassword, username);
         });
     }
 
-    private void signUp(String email, String password, String username) {
+    private void signUp(String email, String password, String confirmPassword, String username) {
         // Validate username
         if (username.isEmpty()) {
             Toast.makeText(this, "Please enter a username", Toast.LENGTH_SHORT).show();
@@ -186,14 +187,41 @@ public class RegisterActivity extends AppCompatActivity {
         }
 
         // Validate password complexity
-        if (password.isEmpty() || password.length() < 8 ||
-                !password.matches(".*[A-Z].*") ||        // At least one uppercase letter
-                !password.matches(".*[a-z].*") ||        // At least one lowercase letter
-                !password.matches(".*\\d.*") ||          // At least one number
-                !password.matches(".*[@#$%^&+=!].*")) {  // At least one special character
-            Toast.makeText(this, "Password must be at least 8 characters long and include uppercase, lowercase, number, and special character.", Toast.LENGTH_LONG).show();
+        if (password.isEmpty()) {
+            Toast.makeText(this, "Password cannot be empty.", Toast.LENGTH_LONG).show();
             return;
         }
+
+        if (password.length() < 8) {
+            Toast.makeText(this, "Password must be at least 8 characters long.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!password.matches(".*[A-Z].*")) {  // At least one uppercase letter
+            Toast.makeText(this, "Password must include at least one uppercase letter.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!password.matches(".*[a-z].*")) {  // At least one lowercase letter
+            Toast.makeText(this, "Password must include at least one lowercase letter.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!password.matches(".*\\d.*")) {  // At least one number
+            Toast.makeText(this, "Password must include at least one number.", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!password.matches(".*[@#$%^&+=!].*")) {  // At least one special character
+            Toast.makeText(this, "Password must include at least one special character (@#$%^&+=!).", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        if (!password.equals(confirmPassword)) {  // Password and ConfirmPassword must be the same
+            Toast.makeText(this, "Confirm Password does not match the New Password", Toast.LENGTH_LONG).show();
+            return;
+        }
+
 
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
         FirebaseFirestore firestore = FirebaseFirestore.getInstance();
