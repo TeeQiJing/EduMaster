@@ -1,20 +1,29 @@
 package com.practical.edumasters.models;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.practical.edumasters.R;
+import com.practical.edumasters.adapters.CommentAdapter;
 import com.practical.edumasters.adapters.CommunityAdapter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CommunityPost {
+public class CommunityPost implements Serializable {
     private String postID;
     private String userID;
     private String title;
@@ -22,9 +31,9 @@ public class CommunityPost {
     private long timestamp;
     private List<String> likedBy;
     private int numOfComments;
-
+    private List<CommunityComment> commentList;
     private String username;
-    private String avatarURL;
+    private String avatarURL; // Base64 String for the avatar
 
     public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy, int numOfComments) {
         this.userID = userID;
@@ -33,8 +42,15 @@ public class CommunityPost {
         this.timestamp = timestamp;
         this.likedBy = likedBy != null ? likedBy : new ArrayList<>();
         this.numOfComments = numOfComments;
+        this.commentList = new ArrayList<>();
     }
 
+    public String getPostID(){
+        return this.postID;
+    }
+    public void setPostID(String postID) {
+        this.postID = postID;
+    }
     public String getTitle() {
         return title;
     }
@@ -53,9 +69,14 @@ public class CommunityPost {
     public String getUserID() {
         return userID;
     }
-
     public String getUsername() {
         return username;
+    }
+    public List<CommunityComment> getCommentList(){
+        return commentList;
+    }
+    public void setNumOfComments(int numOfComments) {
+        this.numOfComments=numOfComments;
     }
 
     // Save the CommunityPost to Firestore
@@ -66,7 +87,6 @@ public class CommunityPost {
         post.put("content", content);
         post.put("timestamp", timestamp);
         post.put("likedBy", likedBy);
-        post.put("numOfComments", numOfComments);
 
         db.collection("community")
                 .add(post) // This adds the post and generates a unique document ID
@@ -148,11 +168,60 @@ public class CommunityPost {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void setPostID(String postID) {
-        this.postID = postID;
+    public void fetchCommentCount(FirebaseFirestore db, FetchCommentCountCallback callback) {
+        if (postID == null || postID.isEmpty()) {
+            if (callback != null) callback.onFailure(new Exception("Post ID is not set"));
+            return;
+        }
+
+        db.collection("community").document(postID).collection("comments")
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    int commentCount = queryDocumentSnapshots.size(); // Count the comments
+                    this.numOfComments = commentCount; // Update the numOfComments field
+                    if (callback != null) callback.onSuccess(commentCount); // Notify the callback
+                })
+                .addOnFailureListener(e -> {
+                    if (callback != null) callback.onFailure(e); // Handle failure
+                });
     }
 
-    public String getPostID(){
-        return this.postID;
+    // Callback interface for fetching comment count
+    public interface FetchCommentCountCallback {
+        void onSuccess(int commentCount);
+
+        void onFailure(Exception e);
     }
+
+    // Get comments for the post
+//    public void retrieveComments(FirebaseFirestore db, RetrieveCommentsCallback callback) {
+//        if (postID == null || postID.isEmpty()) {
+//            if (callback != null) callback.onFailure(new Exception("Post ID is not set"));
+//            return;
+//        }
+//        CollectionReference commentsRef = db.collection("community").document(postID).collection("comments");
+//        commentsRef.orderBy("commentTimestamp", Query.Direction.ASCENDING)
+//                .get()
+//                .addOnSuccessListener(queryDocumentSnapshots -> {
+//                    commentList.clear();
+//                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+//                        CommunityComment comment = doc.toObject(CommunityComment.class);
+//                        if (comment != null) {
+//                            commentList.add(comment);
+//                        }
+//                    }
+//                    if (callback != null) callback.onSuccess(commentList);
+//                })
+//                .addOnFailureListener(e -> {
+//                    if (callback != null) callback.onFailure(e);
+//                });
+//    }
+//}
+//
+//    // Callback interface for loading comments
+//    public interface RetrieveCommentsCallback {
+//        void onSuccess(List<CommunityComment> comments);
+//
+//        void onFailure(Exception e);
+//    }
 }

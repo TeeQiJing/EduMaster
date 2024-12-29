@@ -1,7 +1,15 @@
 package com.practical.edumasters.adapters;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ColorFilter;
+import android.graphics.PorterDuff;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.style.ImageSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +19,15 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.R;
+import com.practical.edumasters.fragments.CommentFragment;
 import com.practical.edumasters.models.CommunityPost;
 
 import java.util.List;
@@ -51,10 +62,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
             @Override
             public void onSuccess(String username, String avatarUrl) {
                 holder.username.setText(username);
-                Glide.with(holder.avatar.getContext())
-                        .load(avatarUrl)
-                        .placeholder(R.drawable.gradient_background)
-                        .into(holder.avatar);
+                displayAvatar(avatarUrl, holder.avatar);
             }
 
             @Override
@@ -75,22 +83,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         // Update like button UI
         updateLikeButtonUI(holder, post, currentUserID);
 
-        // Handle like button click
-//        holder.postLikes.setOnClickListener(v -> {
-//            post.toggleLike(currentUserID, db, new CommunityPost.SaveCallback() {
-//                @Override
-//                public void onSuccess(String postId) {
-//                    // Update the dataset and notify the adapter
-//                    notifyItemChanged(holder.getAdapterPosition());
-//                }
-//
-//                @Override
-//                public void onFailure(Exception e) {
-//                    Toast.makeText(context, "Failed to update like: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-//                }
-//            });
-//        });
-
         holder.postLikes.setOnClickListener(v -> {
             post.toggleLike(currentUserID, db, new CommunityPost.SaveCallback() {
                 @Override
@@ -104,6 +96,14 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
                     Toast.makeText(context, "Failed to update like: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+
+        holder.postComments.setOnClickListener(v -> {
+            Fragment commentFragment = CommentFragment.newInstance(post);
+            FragmentTransaction transaction = ((FragmentActivity) context).getSupportFragmentManager().beginTransaction();
+            transaction.replace(R.id.fragment_container, commentFragment);
+            transaction.addToBackStack(null);
+            transaction.commit();
         });
     }
 
@@ -122,42 +122,17 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
 
 
     private void updateLikeButtonUI(PostViewHolder holder, CommunityPost post, String currentUserID) {
-        boolean isLiked = post.getLikedBy().contains(currentUserID);
+        boolean isLiked = post.getLikedBy() != null && post.getLikedBy().contains(currentUserID);
 
         if (isLiked) {
-            //holder.postLikes.setBackgroundResource(R.drawable.like_button_liked); // Gradient background
-            //holder.postLikes.setBackgroundTintList(null);
             holder.postLikes.setBackgroundColor(holder.postLikes.getContext().getResources().getColor(R.color.liked));
             holder.postLikes.setTextColor(ContextCompat.getColor(context, android.R.color.white)); // White text
-
-//            Drawable drawable = ContextCompat.getDrawable(context, R.drawable.ic_like).mutate();
-//            if (drawable != null) {
-//                drawable.setColorFilter(ContextCompat.getColor(context, R.color.whiteIconTint), PorterDuff.Mode.SRC_IN);
-//
-//                // Set explicit bounds to preserve the drawable size
-//                int iconSize = (int) holder.postLikes.getTextSize(); // Use text size or a fixed dimension
-//                drawable.setBounds(0, 0, iconSize, iconSize);
-//
-//                // Apply the drawable to the button
-//                holder.postLikes.setCompoundDrawables(drawable, null, null, null);
-//            }
+            holder.likeOverlayIcon.setVisibility(View.VISIBLE);
         } else {
-            //holder.postLikes.setBackgroundResource(R.drawable.like_button_default); // Default tint
-            //holder.postLikes.setBackgroundTintList(null);
             holder.postLikes.setBackgroundColor(holder.postLikes.getContext().getResources().getColor(R.color.unliked));
             holder.postLikes.setTextColor(ContextCompat.getColor(context, R.color.blackIconTint)); // Black text
+            holder.likeOverlayIcon.setVisibility(View.GONE);
 
-//            Drawable drawable = ContextCompat.getDrawable(context, R.drawable.ic_like).mutate();
-//            if (drawable != null) {
-//                drawable.setColorFilter(ContextCompat.getColor(context, R.color.blackIconTint), PorterDuff.Mode.SRC_IN);
-//
-//                // Set explicit bounds to preserve the drawable size
-//                int iconSize = (int) holder.postLikes.getTextSize(); // Use text size or a fixed dimension
-//                drawable.setBounds(0, 0, iconSize, iconSize);
-//
-//                // Apply the drawable to the button
-//                holder.postLikes.setCompoundDrawables(drawable, null, null, null);
-//            }
         }
 
         holder.postLikes.setText(String.valueOf(post.getLikedBy().size())); // Update like count
@@ -173,17 +148,34 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         TextView username, postTime, postTitle, postContent;
         public Button postLikes;
         Button postComments;
-        ImageView avatar;
+        ImageView avatar,likeOverlayIcon;
+
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
-            username = itemView.findViewById(R.id.user_name);
+            username = itemView.findViewById(R.id.post_user_name);
             postTime = itemView.findViewById(R.id.post_time);
             postTitle = itemView.findViewById(R.id.post_title);
             postContent = itemView.findViewById(R.id.post_content);
             postLikes = itemView.findViewById(R.id.post_likes);
             postComments = itemView.findViewById(R.id.post_comments);
             avatar = itemView.findViewById(R.id.post_user_avatar);
+            likeOverlayIcon = itemView.findViewById(R.id.ic_liked);
+        }
+    }
+
+    private void displayAvatar(String avatarBase64, ImageView imageView) {
+        if (avatarBase64 != null && !avatarBase64.isEmpty()) {
+            try {
+                byte[] decodedBytes = android.util.Base64.decode(avatarBase64, android.util.Base64.DEFAULT);
+                Bitmap bitmap = BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.length);
+                imageView.setImageBitmap(bitmap);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                imageView.setImageResource(R.drawable.gradient_background); // Fallback to default avatar
+            }
+        } else {
+            imageView.setImageResource(R.drawable.gradient_background); // Fallback to default avatar
         }
     }
 
@@ -191,5 +183,4 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         this.postList = filteredPosts;
         notifyDataSetChanged();
     }
-
 }
