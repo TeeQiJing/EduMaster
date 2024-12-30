@@ -231,7 +231,19 @@ public class CommentFragment extends Fragment {
         titlePost.setText(post.getTitle());
         contentPost.setText(post.getContent());
         postLikes.setText(String.valueOf(post.getLikedBy().size()));
-        postComments.setText(String.valueOf(post.getNumOfComments()));
+
+        post.getCommentCount(db, new CommunityPost.FetchCommentCountCallback() {
+            @Override
+            public void onSuccess(int commentCount) {
+                postComments.setText(String.valueOf(commentCount));
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                postComments.setText("0"); // Default to 0 if fetching fails
+                Toast.makeText(getContext(), "Error loading comments: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void displayAvatar(String avatarBase64, ImageView imageView) {
