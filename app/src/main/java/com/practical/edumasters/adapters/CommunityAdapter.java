@@ -76,7 +76,6 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         holder.postTitle.setText(post.getTitle());
         holder.postContent.setText(post.getContent());
         holder.postLikes.setText(String.valueOf(post.getLikedBy().size()));
-        holder.postComments.setText(String.valueOf(post.getNumOfComments()));
 
         String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
@@ -96,6 +95,20 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
                     Toast.makeText(context, "Failed to update like: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
+        });
+
+        // Fetch and display comment count
+        post.getCommentCount(db, new CommunityPost.FetchCommentCountCallback() {
+            @Override
+            public void onSuccess(int commentCount) {
+                holder.postComments.setText(String.valueOf(commentCount));
+            }
+
+            @Override
+            public void onFailure(Exception e) {
+                holder.postComments.setText("0"); // Default to 0 if fetching fails
+                Toast.makeText(context, "Error loading comments: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
         });
 
         holder.postComments.setOnClickListener(v -> {

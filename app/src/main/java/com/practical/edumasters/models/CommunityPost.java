@@ -8,6 +8,7 @@ import android.util.Log;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.firestore.AggregateSource;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -30,18 +31,16 @@ public class CommunityPost implements Serializable {
     private String content;
     private long timestamp;
     private List<String> likedBy;
-    private int numOfComments;
     private List<CommunityComment> commentList;
     private String username;
     private String avatarURL; // Base64 String for the avatar
 
-    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy, int numOfComments) {
+    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy) {
         this.userID = userID;
         this.title = title;
         this.content = content;
         this.timestamp = timestamp;
         this.likedBy = likedBy != null ? likedBy : new ArrayList<>();
-        this.numOfComments = numOfComments;
         this.commentList = new ArrayList<>();
     }
 
@@ -63,9 +62,6 @@ public class CommunityPost implements Serializable {
     public List<String> getLikedBy() {
         return likedBy;
     }
-    public int getNumOfComments() {
-        return numOfComments;
-    }
     public String getUserID() {
         return userID;
     }
@@ -75,9 +71,7 @@ public class CommunityPost implements Serializable {
     public List<CommunityComment> getCommentList(){
         return commentList;
     }
-    public void setNumOfComments(int numOfComments) {
-        this.numOfComments=numOfComments;
-    }
+
 
     // Save the CommunityPost to Firestore
     public void saveToFirebase(FirebaseFirestore db, SaveCallback callback) {
@@ -168,17 +162,17 @@ public class CommunityPost implements Serializable {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void fetchCommentCount(FirebaseFirestore db, FetchCommentCountCallback callback) {
+    public void getCommentCount(FirebaseFirestore db, FetchCommentCountCallback callback) {
         if (postID == null || postID.isEmpty()) {
             if (callback != null) callback.onFailure(new Exception("Post ID is not set"));
             return;
         }
 
         db.collection("community").document(postID).collection("comments")
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    int commentCount = queryDocumentSnapshots.size(); // Count the comments
-                    this.numOfComments = commentCount; // Update the numOfComments field
+                .count() // Firestore count() aggregation query
+                .get(AggregateSource.SERVER)
+                .addOnSuccessListener(aggregateQuerySnapshot -> {
+                    int commentCount = (int) aggregateQuerySnapshot.getCount(); // Get the count
                     if (callback != null) callback.onSuccess(commentCount); // Notify the callback
                 })
                 .addOnFailureListener(e -> {
@@ -193,35 +187,4 @@ public class CommunityPost implements Serializable {
         void onFailure(Exception e);
     }
 
-    // Get comments for the post
-//    public void retrieveComments(FirebaseFirestore db, RetrieveCommentsCallback callback) {
-//        if (postID == null || postID.isEmpty()) {
-//            if (callback != null) callback.onFailure(new Exception("Post ID is not set"));
-//            return;
-//        }
-//        CollectionReference commentsRef = db.collection("community").document(postID).collection("comments");
-//        commentsRef.orderBy("commentTimestamp", Query.Direction.ASCENDING)
-//                .get()
-//                .addOnSuccessListener(queryDocumentSnapshots -> {
-//                    commentList.clear();
-//                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-//                        CommunityComment comment = doc.toObject(CommunityComment.class);
-//                        if (comment != null) {
-//                            commentList.add(comment);
-//                        }
-//                    }
-//                    if (callback != null) callback.onSuccess(commentList);
-//                })
-//                .addOnFailureListener(e -> {
-//                    if (callback != null) callback.onFailure(e);
-//                });
-//    }
-//}
-//
-//    // Callback interface for loading comments
-//    public interface RetrieveCommentsCallback {
-//        void onSuccess(List<CommunityComment> comments);
-//
-//        void onFailure(Exception e);
-//    }
 }

@@ -133,11 +133,24 @@ public class CommunityFragment extends Fragment {
                             String content = doc.getString("content");
                             long timestamp = parseTimestamp(doc.get("timestamp"));
                             List<String> likedBy = (List<String>) doc.get("likedBy");
-                            int numOfComments = doc.getLong("numOfComments") != null ? doc.getLong("numOfComments").intValue() : 0;
 
-                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy, numOfComments);
+                            // Create a CommunityPost object
+                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy);
                             post.setPostID(postID);
                             postList.add(post);
+
+//                            // Fetch and update the latest comment count
+//                            post.fetchCommentCount(db, new CommunityPost.FetchCommentCountCallback() {
+//                                @Override
+//                                public void onSuccess(int commentCount) {
+//                                    adapter.notifyDataSetChanged(); // Update the UI
+//                                }
+//
+//                                @Override
+//                                public void onFailure(Exception ex) {
+//                                    // Log or handle the error if needed
+//                                }
+//                            });
                         }
                         adapter.notifyDataSetChanged();
                     }
@@ -207,7 +220,7 @@ public class CommunityFragment extends Fragment {
             String userID = currentUser != null ? currentUser.getUid() : "Unknown User";
             long timestamp = System.currentTimeMillis();
 
-            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(), 0);
+            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>());
             post.saveToFirebase(db, new CommunityPost.SaveCallback() {
                 @Override
                 public void onSuccess(String postId) {
