@@ -1,40 +1,55 @@
 package com.practical.edumasters.models;
 
+import static android.content.ContentValues.TAG;
+
 import android.content.Context;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.google.firebase.firestore.AggregateSource;
+import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
 import com.practical.edumasters.R;
+import com.practical.edumasters.adapters.CommentAdapter;
 import com.practical.edumasters.adapters.CommunityAdapter;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class CommunityPost {
+public class CommunityPost implements Serializable {
     private String postID;
     private String userID;
     private String title;
     private String content;
     private long timestamp;
     private List<String> likedBy;
-    private int numOfComments;
-
+    private List<CommunityComment> commentList;
     private String username;
-    private String avatarURL;
+    private String avatarURL; // Base64 String for the avatar
 
-    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy, int numOfComments) {
+    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy) {
         this.userID = userID;
         this.title = title;
         this.content = content;
         this.timestamp = timestamp;
         this.likedBy = likedBy != null ? likedBy : new ArrayList<>();
-        this.numOfComments = numOfComments;
+        this.commentList = new ArrayList<>();
     }
 
+    public String getPostID(){
+        return this.postID;
+    }
+    public void setPostID(String postID) {
+        this.postID = postID;
+    }
     public String getTitle() {
         return title;
     }
@@ -47,16 +62,16 @@ public class CommunityPost {
     public List<String> getLikedBy() {
         return likedBy;
     }
-    public int getNumOfComments() {
-        return numOfComments;
-    }
     public String getUserID() {
         return userID;
     }
-
     public String getUsername() {
         return username;
     }
+    public List<CommunityComment> getCommentList(){
+        return commentList;
+    }
+
 
     // Save the CommunityPost to Firestore
     public void saveToFirebase(FirebaseFirestore db, SaveCallback callback) {
@@ -66,7 +81,6 @@ public class CommunityPost {
         post.put("content", content);
         post.put("timestamp", timestamp);
         post.put("likedBy", likedBy);
-        post.put("numOfComments", numOfComments);
 
         db.collection("community")
                 .add(post) // This adds the post and generates a unique document ID
@@ -148,11 +162,29 @@ public class CommunityPost {
                 .addOnFailureListener(callback::onFailure);
     }
 
-    public void setPostID(String postID) {
-        this.postID = postID;
+    public void getCommentCount(FirebaseFirestore db, FetchCommentCountCallback callback) {
+        if (postID == null || postID.isEmpty()) {
+            if (callback != null) callback.onFailure(new Exception("Post ID is not set"));
+            return;
+        }
+
+        db.collection("community").document(postID).collection("comments")
+                .count() // Firestore count() aggregation query
+                .get(AggregateSource.SERVER)
+                .addOnSuccessListener(aggregateQuerySnapshot -> {
+                    int commentCount = (int) aggregateQuerySnapshot.getCount(); // Get the count
+                    if (callback != null) callback.onSuccess(commentCount); // Notify the callback
+                })
+                .addOnFailureListener(e -> {
+                    if (callback != null) callback.onFailure(e); // Handle failure
+                });
     }
 
-    public String getPostID(){
-        return this.postID;
+    // Callback interface for fetching comment count
+    public interface FetchCommentCountCallback {
+        void onSuccess(int commentCount);
+
+        void onFailure(Exception e);
     }
+
 }
