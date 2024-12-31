@@ -78,23 +78,20 @@
 
 
         <!-- Login Button -->
+
+
+        <!-- Already Have an Account -->
         <Button
             android:id="@+id/btn_login"
             android:layout_width="match_parent"
             android:layout_height="@dimen/_48sdp"
-            android:text="@string/login"
-            android:textSize="@dimen/_14ssp"
+            android:layout_marginBottom="@dimen/_16sdp"
             android:backgroundTint="@color/purple_500"
-            android:textColor="@color/white"
             android:fontFamily="sans-serif-medium"
-            android:layout_marginBottom="@dimen/_16sdp" />
+            android:text="@string/login"
+            android:textColor="@color/white"
+            android:textSize="@dimen/_14ssp" />
 
-
-
-
-
-
-        <!-- Already Have an Account -->
         <TextView
             android:id="@+id/tv_dont_have_account"
             android:layout_width="wrap_content"
