@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.android.material.search.SearchBar;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.CollectionReference;
@@ -56,6 +57,7 @@ public class LearnFragment extends Fragment {
     private FirebaseFirestore db;
     private FirebaseAuth mAuth;
     private TextView greeting;
+    private SearchBar searchBar;
 
     public LearnFragment() {
         // Required empty public constructor
@@ -103,6 +105,20 @@ public class LearnFragment extends Fragment {
         popularRecView.setLayoutManager(new LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false));
         // Check login streak and show dialog
         checkAndShowLoginStreakDialog();
+
+        searchBar = view.findViewById(R.id.search_bar);
+        SearchLesson searchLesson = new SearchLesson();
+        searchBar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                requireActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragment_container, searchLesson)
+                        .addToBackStack(null)
+                        .commit();
+            }
+        });
+
     }
     private void checkAndShowLoginStreakDialog() {
         String userId = mAuth.getCurrentUser().getUid();
@@ -254,6 +270,7 @@ public class LearnFragment extends Fragment {
             }
         });
     }
+
     private void loadUserProfile() {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference userDocRef = db.collection("users").document(userId);
