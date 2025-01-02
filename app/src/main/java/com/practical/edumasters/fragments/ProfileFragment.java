@@ -1,4 +1,4 @@
-package com.practical.edumasters.fragments;//package com.practical.edumasters.fragments;
+package com.practical.edumasters.fragments;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Intent;
@@ -21,6 +21,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.practical.edumasters.R;
 import com.practical.edumasters.activities.LoginActivity;
 import com.practical.edumasters.models.User;
@@ -39,7 +40,7 @@ public class ProfileFragment extends Fragment {
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
     private TextView tvUsername, tvPoints, tvCourses, tvBadge;
-    private LinearLayout btnCertificate, btnFeedback, btnSettings, btnLogout;
+    private LinearLayout btnCertificate, btnFeedback, btnSettings, btnLogout, btnBadge;
 
     public ProfileFragment() {
         // Required empty public constructor
@@ -67,6 +68,7 @@ public class ProfileFragment extends Fragment {
         btnSettings = rootView.findViewById(R.id.btnSettings);
         btnLogout = rootView.findViewById(R.id.btnLogout);
         tvBadge = rootView.findViewById(R.id.tvBadge);
+        btnBadge = rootView.findViewById(R.id.btnBadges);
 
 
 
@@ -89,10 +91,74 @@ public class ProfileFragment extends Fragment {
                     .addToBackStack(null)
                     .commit();
         });
-        btnSettings.setOnClickListener(v -> navigateToSettings());
+        btnBadge.setOnClickListener(v -> checkAndNavigate());
+        btnSettings.setOnClickListener(v -> {
+                    requireActivity().getSupportFragmentManager()
+                            .beginTransaction()
+                            .setCustomAnimations(
+                                    R.anim.slide_in_right,  // Animation for fragment entry
+                                    R.anim.slide_out_left, // Animation for fragment exit
+                                    R.anim.slide_in_left,  // Animation for returning to the fragment
+                                    R.anim.slide_out_right // Animation for exiting back
+                            )
+                            .replace(R.id.fragment_container, new SettingsFragment()) // Replace `fragment_container` with your container ID
+                            .addToBackStack(null)
+                            .commit();
+        }
+        );
         btnLogout.setOnClickListener(v -> showLogoutConfirmationDialog());
 
         return rootView;
+    }
+
+    private void checkAndNavigate() {
+        String userId = mAuth.getCurrentUser().getUid();
+        db.collection("user_badges")
+                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        boolean hasBadges = false;
+
+                        for (QueryDocumentSnapshot document : task.getResult()) {
+                            DocumentReference badgeIdRef = document.getDocumentReference("badgeIdRef");
+                            if (badgeIdRef != null) {
+                                hasBadges = true;
+                                break; // If at least one badge is found, stop further checks
+                            }
+                        }
+
+                        if (hasBadges) {
+                            // Navigate to BadgeFragment
+                            requireActivity().getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .setCustomAnimations(
+                                            R.anim.slide_in_right,
+                                            R.anim.slide_out_left,
+                                            R.anim.slide_in_left,
+                                            R.anim.slide_out_right
+                                    )
+                                    .replace(R.id.fragment_container, new BadgeFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        } else {
+                            // Navigate to DefaultBadgeFragment
+                            requireActivity().getSupportFragmentManager()
+                                    .beginTransaction()
+                                    .setCustomAnimations(
+                                            R.anim.slide_in_right,
+                                            R.anim.slide_out_left,
+                                            R.anim.slide_in_left,
+                                            R.anim.slide_out_right
+                                    )
+                                    .replace(R.id.fragment_container, new DefaultBadgeFragment())
+                                    .addToBackStack(null)
+                                    .commit();
+                        }
+                    } else {
+                        Log.w("BadgeCheck", "Error checking badges.", task.getException());
+                    }
+                });
     }
 
     private void loadUserProfile() {
@@ -152,7 +218,7 @@ public class ProfileFragment extends Fragment {
                 });
     }
 
-    private void openImagePicker() {
+    public void openImagePicker() {
         Intent intent = new Intent(Intent.ACTION_PICK);
         intent.setType("image/*");
         startActivityForResult(intent, PICK_IMAGE_REQUEST);
@@ -165,15 +231,10 @@ public class ProfileFragment extends Fragment {
             Uri imageUri = data.getData();
             if (imageUri != null) {
                 try {
-                    // Validate image size before uploading
-//                    if (isImageSizeValid(imageUri)) {
                         String base64Image = compressAndConvertToBase64(imageUri);
                         if (base64Image != null) {
                             uploadAvatar(base64Image);
                         }
-//                    } else {
-//                        Toast.makeText(getContext(), "Image is too large. Please choose another image.", Toast.LENGTH_SHORT).show();
-//                    }
                 } catch (Exception e) {
                     Log.e("ProfileFragment", "Error processing image", e);
                 }
@@ -181,22 +242,8 @@ public class ProfileFragment extends Fragment {
         }
     }
 
-    private boolean isImageSizeValid(Uri imageUri) {
-        try {
-            InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
-            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
-            if (bitmap != null) {
-                int imageSizeInKB = bitmap.getByteCount() / 1024; // Convert bytes to KB
-                return imageSizeInKB < 500; // 500 KB limit
-            }
-        } catch (Exception e) {
-            Log.e("ProfileFragment", "Error checking image size", e);
-        }
-        return false;
-    }
-
-    // Compress and convert image to Base64 (modified to limit size to 1000KB)
-    private String compressAndConvertToBase64(Uri imageUri) throws Exception {
+    // Compress and convert image to Base64
+    public String compressAndConvertToBase64(Uri imageUri) throws Exception {
         InputStream inputStream = getContext().getContentResolver().openInputStream(imageUri);
         Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
 
@@ -209,13 +256,7 @@ public class ProfileFragment extends Fragment {
 
         byte[] byteArray = byteArrayOutputStream.toByteArray();
 
-        // Check if compressed byte array is still too large
-//        if (byteArray.length > 1024 * 1000) { // 1MB limit
-//            Toast.makeText(getContext(), "Image is too large. Please select a smaller image.", Toast.LENGTH_SHORT).show();
-//            return null;
-//        }
-
-        // Convert to Base64 and check the size
+        // Convert to Base64
         String base64Image = Base64.encodeToString(byteArray, Base64.DEFAULT);
 
         // Check if the Base64 string size exceeds Firestore document size limit (1MB)
@@ -229,7 +270,7 @@ public class ProfileFragment extends Fragment {
 
 
 
-    private void uploadAvatar(String base64Image) {
+    public void uploadAvatar(String base64Image) {
         String userId = mAuth.getCurrentUser().getUid();
         DocumentReference userDocRef = db.collection("users").document(userId);
 
@@ -243,7 +284,7 @@ public class ProfileFragment extends Fragment {
         });
     }
 
-    private void loadAvatar(String base64Image) {
+    public void loadAvatar(String base64Image) {
         byte[] decodedString = Base64.decode(base64Image, Base64.DEFAULT);
         Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
         avatarImageView.setImageBitmap(decodedByte);
@@ -263,15 +304,6 @@ public class ProfileFragment extends Fragment {
                 .commit();
     }
 
-
-
-    private void navigateToSettings() {
-        // Implement navigation to settings activity or fragment
-        Toast.makeText(getContext(), "Navigating to Settings", Toast.LENGTH_SHORT).show();
-    }
-
-
-
     private void showLogoutConfirmationDialog() {
         // Inflate the custom layout for the dialog
         LayoutInflater inflater = LayoutInflater.from(getContext());
@@ -288,7 +320,7 @@ public class ProfileFragment extends Fragment {
         cancelButton.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog on cancel
 
         // Set up Logout button
-        Button logoutButton = dialogView.findViewById(R.id.logout_button);
+        Button logoutButton = dialogView.findViewById(R.id.collect_points_button);
         logoutButton.setOnClickListener(v -> {
             dialog.dismiss(); // Dismiss dialog
             logout(); // Call the logout method
@@ -297,6 +329,7 @@ public class ProfileFragment extends Fragment {
         // Show the dialog
         dialog.show();
     }
+
 
     private void logout() {
         mAuth.signOut();

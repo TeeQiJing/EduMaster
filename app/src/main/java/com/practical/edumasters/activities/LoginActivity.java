@@ -3,16 +3,24 @@ package com.practical.edumasters.activities;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.practical.edumasters.databinding.ActivityLoginBinding;
+
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -67,6 +75,7 @@ public class LoginActivity extends AppCompatActivity {
                         if (user != null) {
                             if (user.isEmailVerified()) {
                                 // If email is verified, allow login
+                                updateLoginStreak();
                                 Toast.makeText(this, "Login successful!", Toast.LENGTH_SHORT).show();
                                 Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                                 startActivity(intent);
@@ -83,6 +92,66 @@ public class LoginActivity extends AppCompatActivity {
                         Toast.makeText(this, "Login failed: " + errorMessage, Toast.LENGTH_SHORT).show();
                     }
                 });
+    }
+
+    private void updateLoginStreak() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        DocumentReference loginStreakRef = FirebaseFirestore.getInstance().collection("login_streak").document(userId);
+
+        loginStreakRef.get().addOnSuccessListener(documentSnapshot -> {
+            if (documentSnapshot.exists()) {
+                // Existing streak data
+                Timestamp lastLoginTimestamp = documentSnapshot.getTimestamp("lastLoginDate");
+                long currentStreak = documentSnapshot.getLong("streak");
+
+                // Get today's date (ignoring time)
+                Calendar today = Calendar.getInstance();
+                today.set(Calendar.HOUR_OF_DAY, 0);
+                today.set(Calendar.MINUTE, 0);
+                today.set(Calendar.SECOND, 0);
+                today.set(Calendar.MILLISECOND, 0);
+                Date todayDate = today.getTime();
+
+                if (lastLoginTimestamp != null) {
+                    Calendar lastLoginCalendar = Calendar.getInstance();
+                    lastLoginCalendar.setTime(lastLoginTimestamp.toDate());
+                    lastLoginCalendar.set(Calendar.HOUR_OF_DAY, 0);
+                    lastLoginCalendar.set(Calendar.MINUTE, 0);
+                    lastLoginCalendar.set(Calendar.SECOND, 0);
+                    lastLoginCalendar.set(Calendar.MILLISECOND, 0);
+                    Date lastLoginDateOnly = lastLoginCalendar.getTime();
+
+                    if (todayDate.equals(lastLoginDateOnly)) {
+                        // User already logged in today, no updates needed
+                        Log.d("LoginStreak", "User has already logged in today.");
+                    } else if (todayDate.getTime() - lastLoginDateOnly.getTime() == 24 * 60 * 60 * 1000) {
+                        // Consecutive login (next day), increment streak
+                        currentStreak++;
+                        saveLoginStreak(loginStreakRef, currentStreak, todayDate);
+                    } else {
+                        // Non-consecutive login, reset streak to 1
+                        currentStreak = 1;
+                        saveLoginStreak(loginStreakRef, currentStreak, todayDate);
+                    }
+                }
+            } else {
+                // No existing streak data, create new record
+                saveLoginStreak(loginStreakRef, 1, new Date());
+            }
+        }).addOnFailureListener(e -> Log.e("LoginStreak", "Error fetching login streak data", e));
+    }
+
+    private void saveLoginStreak(DocumentReference loginStreakRef, long streak, Date todayDate) {
+        Map<String, Object> streakData = new HashMap<>();
+        streakData.put("streak", streak);
+        streakData.put("lastLoginDate", new Timestamp(todayDate));
+        streakData.put("isPointCollected", false); // Set isPointCollected to false whenever updating streak
+
+        loginStreakRef.set(streakData).addOnSuccessListener(aVoid -> {
+            Log.d("LoginStreak", "Streak data updated successfully: Streak = " + streak);
+        }).addOnFailureListener(e -> {
+            Log.e("LoginStreak", "Error updating streak data", e);
+        });
     }
 
     /**

@@ -111,7 +111,7 @@ public class PopularLessonCardAdapter extends RecyclerView.Adapter<PopularLesson
 
                         switch (Objects.requireNonNull(title)){
                             case "GitHub":
-                holder.image.setImageResource(R.drawable.ic_github);
+                                holder.image.setImageResource(R.drawable.ic_github);
                                 break;
                             case "Java":
                                 holder.image.setImageResource(R.drawable.ic_java);

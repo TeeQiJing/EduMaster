@@ -2,6 +2,7 @@
 
 package com.practical.edumasters.fragments;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -27,9 +28,11 @@ import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -118,6 +121,7 @@ public class LessonFragment extends Fragment {
                         bundle.putString("chapterTitle", selectedChapter.getTitle());  // Pass the chapter Title
                         contentFragment.setArguments(bundle);
                         FragmentManager fragmentManager = getActivity() != null ? getActivity().getSupportFragmentManager() : null;
+
                         if (fragmentManager != null) {
                             fragmentManager.beginTransaction()
                                     .setCustomAnimations(
@@ -130,6 +134,7 @@ public class LessonFragment extends Fragment {
                                     .addToBackStack(null)
                                     .commitAllowingStateLoss();
                         }
+
                     } else {
                         Toast.makeText(getContext(), "Chapter content is empty", Toast.LENGTH_SHORT).show();
                     }
@@ -169,11 +174,15 @@ public class LessonFragment extends Fragment {
 
         lessonId = getArguments().getString("lessonId");
         loadLessonData(lessonId);
+        checkAndGrantMilestoneMasterBadge();
+        checkAndGrantQuizWhizBadge();
+
         checkEnrollmentStatus();
 
         btnEnroll.setOnClickListener(view -> {
             String userId = mAuth.getCurrentUser().getUid();
             enrollInLesson(userId, lessonId);
+            checkAndGrantFirstStepBadge();
         });
 
         btnFav.setOnClickListener(v -> {
@@ -194,24 +203,6 @@ public class LessonFragment extends Fragment {
         return rootView;
     }
 
-//    private void checkEnrollmentStatus() {
-//        String userId = mAuth.getCurrentUser().getUid();
-//
-//        db.collection("current_lesson")
-//                .whereEqualTo("userId", db.collection("users").document(userId))
-//                .whereEqualTo("lessonId", db.collection("total_lesson").document(lessonId))
-//                .get()
-//                .addOnCompleteListener(task -> {
-//                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
-//                        isEnrolled = true;
-//                        btnEnroll.setVisibility(View.GONE);
-//                        CLbtn.setVisibility(View.GONE);
-//                    } else {
-//                        isEnrolled = false;
-//                        btnEnroll.setVisibility(View.VISIBLE);
-//                    }
-//                });
-//    }
     private void checkEnrollmentStatus() {
         String userId = mAuth.getCurrentUser().getUid();
 
@@ -236,6 +227,335 @@ public class LessonFragment extends Fragment {
                     chapterAdapter.notifyDataSetChanged();
                 });
     }
+    private void checkAndGrantFirstStepBadge() {
+        String userId = mAuth.getCurrentUser().getUid();
+
+        // Get a reference to the badge document by using the badgeId
+        DocumentReference badgeRef = db.collection("total_badges").document("5j5PlMVp5CQH4rs0zYZJ"); // Using the direct badge ID
+
+        // Get a reference to the user document
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // Check if the user is enrolled in a course by looking for their record in the current_lesson collection
+        db.collection("current_lesson")
+                .whereEqualTo("userId", userRef)  // Compare userId with the DocumentReference
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful() && task.getResult() != null) {
+                        // If the user is enrolled in a course, check the size of the result
+                        if (task.getResult().size() == 1) {
+                            // User is enrolling for the first time, so we grant the badge
+                            Log.d(TAG, "User is enrolling for the first time.");
+                            // Check if the user has the "First step" badge
+                            db.collection("user_badges")
+                                    .whereEqualTo("userIdRef", userRef)
+                                    .whereEqualTo("badgeIdRef", badgeRef) // Check for existing "First step badge"
+                                    .get()
+                                    .addOnCompleteListener(badgeTask -> {
+                                        if (badgeTask.isSuccessful() && badgeTask.getResult() != null && badgeTask.getResult().isEmpty()) {
+                                            // User doesn't have the "First step badge", grant it
+                                            grantFirstStepBadge(userId, badgeRef, userRef);
+                                        } else {
+                                            // User already has the "First step badge"
+                                            Log.d(TAG, "User already has the 'First step badge'.");
+                                        }
+                                    });
+                        } else {
+                            // User is already enrolled in multiple lessons or no lessons at all, no action needed
+                            Log.d(TAG, "User is already enrolled in multiple lessons or no lessons at all.");
+                        }
+                    } else {
+                        Log.e(TAG, "Error checking enrollment in lessons: ", task.getException());
+                    }
+                });
+    }
+
+    private void grantFirstStepBadge(String userId, DocumentReference badgeRef, DocumentReference userRef) {
+        // Create a new badge document to grant the "First step badge"
+        Map<String, Object> badgeData = new HashMap<>();
+        badgeData.put("userIdRef", userRef); // Use user reference
+        badgeData.put("badgeIdRef", badgeRef); // Use badge reference
+        badgeData.put("dateGranted", FieldValue.serverTimestamp());
+
+        db.collection("user_badges")
+                .add(badgeData)
+                .addOnSuccessListener(documentReference -> {
+                    showBadge1Dialog(badgeRef);
+                    Log.d(TAG, "First step badge granted to user.");
+
+                    Toast.makeText(getContext(), "You have received the 'First step badge'!", Toast.LENGTH_SHORT).show();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error granting 'First step badge': ", e);
+                    Toast.makeText(getContext(), "Failed to grant 'First step badge'.", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void showBadge1Dialog(DocumentReference badgeRef) {
+        // Get the badge details from the total_badges collection using the badgeRef
+        badgeRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot badgeSnapshot = task.getResult();
+                if (badgeSnapshot.exists()) {
+                    String badgeName = badgeSnapshot.getString("badges_name");
+                    String badgeDesc = badgeSnapshot.getString("badges_desc");
+
+                    // Update the dialog with the badge information
+                    final Dialog badgeDialog = new Dialog(getContext());
+                    badgeDialog.setContentView(R.layout.dialog_badges);
+
+                    // Set the title and description
+                    TextView titleView = badgeDialog.findViewById(R.id.badges_dialog_title);
+                    TextView messageView = badgeDialog.findViewById(R.id.badges_dialog_message);
+                    ImageView badgeImageView = badgeDialog.findViewById(R.id.badges_image);  // Assume you add an ImageView in XML for icon
+
+                    titleView.setText(badgeName);
+                    messageView.setText(badgeDesc);
+
+                    // You can load the appropriate badge icon here (example: set a default icon for now)
+                    badgeImageView.setImageResource(R.drawable.ic_badges1); // You can replace this with a dynamic icon if needed
+
+                    // Show the dialog
+                    badgeDialog.show();
+
+                    // Handle the collect button click
+                    Button collectButton = badgeDialog.findViewById(R.id.collect_badges_button);
+                    collectButton.setOnClickListener(v -> badgeDialog.dismiss());  // Close dialog on button click
+
+                } else {
+                    Log.d(TAG, "Badge not found in total_badges collection.");
+                }
+            } else {
+                Log.e(TAG, "Error fetching badge details: ", task.getException());
+            }
+        });
+    }
+
+
+
+
+    private void checkAndGrantMilestoneMasterBadge() {
+        String userId = mAuth.getCurrentUser().getUid();
+
+        // References to the user and badge documents
+        DocumentReference badgeRef = db.collection("total_badges").document("ShBef8enC80FJMKhodvt"); // MilestoneMaster badge ID
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // Step 1: Query the chapter_progress collection to count completed chapters
+        db.collection("chapter_progress")
+                .whereEqualTo("userIdRef", userRef) // Reference to the user document
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        long completedChaptersCount = task.getResult().size();
+
+                        // Step 2: Check if the user has completed at least 5 chapters
+                        if (completedChaptersCount == 5) {
+                            // Step 3: Verify if the badge is already granted
+                            db.collection("user_badges")
+                                    .whereEqualTo("userIdRef", userRef)
+                                    .whereEqualTo("badgeIdRef", badgeRef)
+                                    .get()
+                                    .addOnCompleteListener(badgeTask -> {
+                                        if (badgeTask.isSuccessful()) {
+                                            if (badgeTask.getResult() != null && badgeTask.getResult().isEmpty()) {
+                                                // Badge not granted, proceed to grant it
+                                                grantMilestoneMasterBadge(userRef, badgeRef);
+                                            } else {
+                                                // Badge already granted
+                                                Log.d(TAG, "User already has the 'MilestoneMaster' badge.");
+                                            }
+                                        } else {
+                                            // Handle errors in badge query
+                                            Log.e(TAG, "Error checking badge: ", badgeTask.getException());
+                                        }
+                                    });
+                        } else {
+                            // User has not completed enough chapters
+                            Log.d(TAG, "User has not completed enough chapters for 'MilestoneMaster' badge.");
+                        }
+                    } else {
+                        // Handle errors in chapter progress query
+                        Log.e(TAG, "Error getting chapter progress: ", task.getException());
+                    }
+                });
+    }
+
+    private void grantMilestoneMasterBadge(DocumentReference userRef, DocumentReference badgeRef) {
+        // Create a new badge document to grant the 'MilestoneMaster' badge
+        Map<String, Object> badgeData = new HashMap<>();
+        badgeData.put("userIdRef", userRef); // Use user reference
+        badgeData.put("badgeIdRef", badgeRef); // Use badge reference
+        badgeData.put("dateGranted", FieldValue.serverTimestamp()); // Timestamp when the badge is granted
+
+        db.collection("user_badges")
+                .add(badgeData)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "MilestoneMaster badge granted to user.");
+                    // Optionally, display a dialog or notification here
+                    showBadge2Dialog(badgeRef);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error granting 'MilestoneMaster' badge: ", e);
+                    Toast.makeText(getContext(), "Failed to grant 'MilestoneMaster' badge.", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void showBadge2Dialog(DocumentReference badgeRef) {
+        // Get the badge details from the total_badges collection using the badgeRef
+        badgeRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot badgeSnapshot = task.getResult();
+                if (badgeSnapshot.exists()) {
+                    String badgeName = badgeSnapshot.getString("badges_name");
+                    String badgeDesc = badgeSnapshot.getString("badges_desc");
+
+                    // Update the dialog with the badge information
+                    final Dialog badgeDialog = new Dialog(getContext());
+                    badgeDialog.setContentView(R.layout.dialog_badges);
+
+                    // Set the title and description
+                    TextView titleView = badgeDialog.findViewById(R.id.badges_dialog_title);
+                    TextView messageView = badgeDialog.findViewById(R.id.badges_dialog_message);
+                    ImageView badgeImageView = badgeDialog.findViewById(R.id.badges_image);  // Assume you add an ImageView in XML for icon
+
+                    titleView.setText(badgeName);
+                    messageView.setText(badgeDesc);
+
+                    // You can load the appropriate badge icon here (example: set a default icon for now)
+                    badgeImageView.setImageResource(R.drawable.ic_badges2); // You can replace this with a dynamic icon if needed
+
+                    // Show the dialog
+                    badgeDialog.show();
+
+                    // Handle the collect button click
+                    Button collectButton = badgeDialog.findViewById(R.id.collect_badges_button);
+                    collectButton.setOnClickListener(v -> badgeDialog.dismiss());  // Close dialog on button click
+
+                } else {
+                    Log.d(TAG, "Badge not found in total_badges collection.");
+                }
+            } else {
+                Log.e(TAG, "Error fetching badge details: ", task.getException());
+            }
+        });
+    }
+    private void checkAndGrantQuizWhizBadge() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser == null) {
+            Log.e("QuizFragment", "User not logged in. Cannot grant badge.");
+            return; // Exit early if the user is not logged in
+        }
+
+        String userId = currentUser.getUid();
+
+        // References to the user and badge documents
+        DocumentReference badgeRef = db.collection("total_badges").document("acNltPeVwqD3gzcX5A3Y"); // MilestoneMaster badge ID
+        DocumentReference userRef = db.collection("users").document(userId);
+
+        // Step 1: Query the quiz_progress collection to count completed quiz
+        db.collection("quiz_progress")
+                .whereEqualTo("userIdRef", userRef) // Reference to the user document
+                .get()
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        long completedQuizCount = task.getResult().size();
+
+                        // Step 2: Check if the user has completed at least 5 quiz
+                        if (completedQuizCount == 1) {
+                            // Step 3: Verify if the badge is already granted
+                            db.collection("user_badges")
+                                    .whereEqualTo("userIdRef", userRef)
+                                    .whereEqualTo("badgeIdRef", badgeRef)
+                                    .get()
+                                    .addOnCompleteListener(badgeTask -> {
+                                        if (badgeTask.isSuccessful()) {
+                                            if (badgeTask.getResult() != null && badgeTask.getResult().isEmpty()) {
+                                                // Badge not granted, proceed to grant it
+                                                grantQuizWhizBadge(userRef, badgeRef);
+                                            } else {
+                                                // Badge already granted
+                                                Log.d(TAG, "User already has the 'QuizWhiz badge.");
+                                            }
+                                        } else {
+                                            // Handle errors in badge query
+                                            Log.e(TAG, "Error checking badge: ", badgeTask.getException());
+                                        }
+                                    });
+                        } else {
+                            // User has not completed enough quiz
+                            Log.d(TAG, "User has not completed enough chapters for 'QuizWhiz' badge.");
+                        }
+                    } else {
+                        // Handle errors in quiz progress query
+                        Log.e(TAG, "Error getting quiz progress: ", task.getException());
+                    }
+                });
+    }
+
+    private void grantQuizWhizBadge(DocumentReference userRef, DocumentReference badgeRef) {
+        // Create a new badge document to grant the 'QuizWhiz' badge
+        Map<String, Object> badgeData = new HashMap<>();
+        badgeData.put("userIdRef", userRef); // Use user reference
+        badgeData.put("badgeIdRef", badgeRef); // Use badge reference
+        badgeData.put("dateGranted", FieldValue.serverTimestamp()); // Timestamp when the badge is granted
+
+        db.collection("user_badges")
+                .add(badgeData)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "QuizWhiz badge granted to user.");
+                    // Optionally, display a dialog or notification here
+                    showBadge3Dialog(badgeRef);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error granting 'QuizWhiz' badge: ", e);
+                    Toast.makeText(getContext(), "Failed to grant 'QuizWhiz' badge.", Toast.LENGTH_SHORT).show();
+                });
+    }
+    private void showBadge3Dialog(DocumentReference badgeRef) {
+        // Get the badge details from the total_badges collection using the badgeRef
+        badgeRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                DocumentSnapshot badgeSnapshot = task.getResult();
+                if (badgeSnapshot.exists()) {
+                    String badgeName = badgeSnapshot.getString("badges_name");
+                    String badgeDesc = badgeSnapshot.getString("badges_desc");
+
+                    // Update the dialog with the badge information
+                    final Dialog badgeDialog = new Dialog(getContext());
+                    badgeDialog.setContentView(R.layout.dialog_badges);
+
+                    // Set the title and description
+                    TextView titleView = badgeDialog.findViewById(R.id.badges_dialog_title);
+                    TextView messageView = badgeDialog.findViewById(R.id.badges_dialog_message);
+                    ImageView badgeImageView = badgeDialog.findViewById(R.id.badges_image);  // Assume you add an ImageView in XML for icon
+
+                    titleView.setText(badgeName);
+                    messageView.setText(badgeDesc);
+
+                    // You can load the appropriate badge icon here (example: set a default icon for now)
+                    badgeImageView.setImageResource(R.drawable.ic_badges3); // You can replace this with a dynamic icon if needed
+
+                    // Show the dialog
+                    badgeDialog.show();
+
+                    // Handle the collect button click
+                    Button collectButton = badgeDialog.findViewById(R.id.collect_badges_button);
+                    collectButton.setOnClickListener(v -> badgeDialog.dismiss());  // Close dialog on button click
+
+                } else {
+                    Log.d(TAG, "Badge not found in total_badges collection.");
+                }
+            } else {
+                Log.e(TAG, "Error fetching badge details: ", task.getException());
+            }
+        });
+    }
+
+
+
+
+
 
     private void loadLessonData(String lessonId) {
         db.collection("total_lesson")
@@ -328,75 +648,52 @@ public class LessonFragment extends Fragment {
                 });
     }
 
-//    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-//        if (pattern == null || pattern.isEmpty()) {
-//            return;
-//        }
-//
-//        // Clear the existing contentList to avoid duplicates
-//        contentList.clear();
-//
-//        int chapterIndex = 0, quizIndex = 0;
-//
-//        for (char type : pattern.toCharArray()) {
-//            if (type == 'C' && chapterIndex < chapters.size()) {
-//                Chapter chapter = chapters.get(chapterIndex++);
-//                checkChapterCompletion(chapter);  // Check if this chapter is completed
-//                contentList.add(chapter);
-//            } else if (type == 'Q' && quizIndex < quizzes.size()) {
-//                Quiz quiz = quizzes.get(quizIndex++);
-//                checkQuizCompletion(quiz);  // Check if this quiz is completed
-//                contentList.add(quiz);
-//            }
-//        }
-//
-//        chapterAdapter.notifyDataSetChanged();
-//    }
-private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
-    if (pattern == null || pattern.isEmpty()) {
-        Log.d("Pattern", "Pattern is null or empty.");
-        return;
-    }
 
-    // Clear the existing contentList to avoid duplicates
-    contentList.clear();
-
-    int chapterIndex = 0, quizIndex = 0;
-    int totalItems = pattern.length();  // Total items based on pattern length
-    int completedItems = 0;
-
-    // Log size of chapters and quizzes lists
-    Log.d("Data", "Chapters size: " + chapters.size() + ", Quizzes size: " + quizzes.size());
-
-    // Track the completion states for all chapters and quizzes
-    List<Task<QuerySnapshot>> completionTasks = new ArrayList<>();
-
-    // Loop through pattern and process chapters/quizzes
-    for (char type : pattern.toCharArray()) {
-        if (type == 'C' && chapterIndex < chapters.size()) {
-            Chapter chapter = chapters.get(chapterIndex++);
-            checkChapterCompletion(chapter, completionTasks);  // Check if this chapter is completed
-            contentList.add(chapter);
-        } else if (type == 'Q' && quizIndex < quizzes.size()) {
-            Quiz quiz = quizzes.get(quizIndex++);
-            checkQuizCompletion(quiz, completionTasks);  // Check if this quiz is completed
-            contentList.add(quiz);
+    private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes, String pattern) {
+        if (pattern == null || pattern.isEmpty()) {
+            Log.d("Pattern", "Pattern is null or empty.");
+            return;
         }
+
+        // Clear the existing contentList to avoid duplicates
+        contentList.clear();
+
+        int chapterIndex = 0, quizIndex = 0;
+        int totalItems = pattern.length();  // Total items based on pattern length
+        int completedItems = 0;
+
+        // Log size of chapters and quizzes lists
+        Log.d("Data", "Chapters size: " + chapters.size() + ", Quizzes size: " + quizzes.size());
+
+        // Track the completion states for all chapters and quizzes
+        List<Task<QuerySnapshot>> completionTasks = new ArrayList<>();
+
+        // Loop through pattern and process chapters/quizzes
+        for (char type : pattern.toCharArray()) {
+            if (type == 'C' && chapterIndex < chapters.size()) {
+                Chapter chapter = chapters.get(chapterIndex++);
+                checkChapterCompletion(chapter, completionTasks);  // Check if this chapter is completed
+                contentList.add(chapter);
+            } else if (type == 'Q' && quizIndex < quizzes.size()) {
+                Quiz quiz = quizzes.get(quizIndex++);
+                checkQuizCompletion(quiz, completionTasks);  // Check if this quiz is completed
+                contentList.add(quiz);
+            }
+        }
+
+        // Use Tasks.whenAll() to wait for all completion tasks to finish
+        Tasks.whenAll(completionTasks)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Calculate progress once all tasks are completed
+                        calculateProgress(totalItems);
+                    } else {
+                        Log.e("Error", "Failed to complete one or more tasks");
+                    }
+                });
+
+        chapterAdapter.notifyDataSetChanged();
     }
-
-    // Use Tasks.whenAll() to wait for all completion tasks to finish
-    Tasks.whenAll(completionTasks)
-            .addOnCompleteListener(task -> {
-                if (task.isSuccessful()) {
-                    // Calculate progress once all tasks are completed
-                    calculateProgress(totalItems);
-                } else {
-                    Log.e("Error", "Failed to complete one or more tasks");
-                }
-            });
-
-    chapterAdapter.notifyDataSetChanged();
-}
 
     private void checkChapterCompletion(Chapter chapter, List<Task<QuerySnapshot>> completionTasks) {
         String userId = mAuth.getCurrentUser().getUid();

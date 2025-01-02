@@ -1,5 +1,6 @@
 package com.practical.edumasters.fragments;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -20,6 +21,7 @@ import androidx.fragment.app.FragmentManager;
 import com.bumptech.glide.Glide;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
@@ -37,6 +39,7 @@ import java.util.Map;
 public class QuizFragment extends Fragment {
     private static final String TAG = "QuizFragment";
     private FirebaseFirestore db;
+    private FirebaseAuth mAuth;
     private TextView questionTitle;
     private ImageView questionImage;
     private Button optionA, optionB, optionC, optionD, nextButton, previousButton;
@@ -139,6 +142,66 @@ public class QuizFragment extends Fragment {
                 });
     }
 
+//    private void displayQuestion(Question question) {
+//        Log.d(TAG, "Displaying question: " + question.getTitle());
+//
+//        // Reset state for new question
+//        isAnswered = false;
+//        resetButtonColors();
+//
+//        // Update visibility of navigation buttons
+//        previousButton.setVisibility(currentQuestionIndex > 0 ? View.VISIBLE : View.GONE);
+//
+//        // Enable answer buttons
+//        optionA.setEnabled(true);
+//        optionB.setEnabled(true);
+//        optionC.setEnabled(true);
+//        optionD.setEnabled(true);
+//
+//        // Set question title
+//        questionTitle.setText("Q" + (currentQuestionIndex + 1) + ". " + question.getTitle());
+//
+//        // Load image if available
+//        String imageUrl = question.getImageUrl();
+//        if (imageUrl != null && !imageUrl.isEmpty()) {
+//            questionImage.setVisibility(View.VISIBLE);
+//            Glide.with(getContext()).load(imageUrl).into(questionImage);
+//        } else {
+//            questionImage.setVisibility(View.GONE);
+//        }
+//
+//        // Set options
+//        List<String> options = question.getOptions();
+//        if (options.size() >= 4) {
+//            optionA.setText(options.get(0));
+//            optionB.setText(options.get(1));
+//            optionC.setText(options.get(2));
+//            optionD.setText(options.get(3));
+//
+//            optionA.setOnClickListener(v -> processAnswer(question, options.get(0), optionA));
+//            optionB.setOnClickListener(v -> processAnswer(question, options.get(1), optionB));
+//            optionC.setOnClickListener(v -> processAnswer(question, options.get(2), optionC));
+//            optionD.setOnClickListener(v -> processAnswer(question, options.get(3), optionD));
+//        }
+//
+//        // Check if the question has already been answered
+//        restoreAnswerState(question);
+//
+//        // Update nextButton text and behavior
+//        if (currentQuestionIndex == questions.size() - 1) {
+//            nextButton.setText("Finish");
+//            nextButton.setOnClickListener(v -> quitToPreviousFragment());
+//        } else {
+//            nextButton.setText("Next");
+//            nextButton.setOnClickListener(v -> {
+//                if (currentQuestionIndex < questions.size() - 1) {
+//                    currentQuestionIndex++;
+//                    displayQuestion(questions.get(currentQuestionIndex));
+//                }
+//            });
+//        }
+//    }
+
     private void displayQuestion(Question question) {
         Log.d(TAG, "Displaying question: " + question.getTitle());
 
@@ -198,6 +261,8 @@ public class QuizFragment extends Fragment {
             });
         }
     }
+
+
     private void quitToPreviousFragment() {
         Log.d(TAG, "Navigating back to previous fragment and saving quiz progress.");
         if (quizId == null || userId == null) {
@@ -222,7 +287,9 @@ public class QuizFragment extends Fragment {
                                 .add(progressData)
                                 .addOnSuccessListener(documentReference -> {
                                     Log.d(TAG, "Quiz progress successfully saved.");
-                                    navigateBack(); // Navigate to the previous fragment
+                                     // Navigate to the previous fragment
+
+                                    navigateBack();
                                 })
                                 .addOnFailureListener(e -> Log.e(TAG, "Error saving quiz progress", e));
                     } else if (task.isSuccessful()) {
@@ -233,6 +300,7 @@ public class QuizFragment extends Fragment {
                     }
                 });
     }
+
 
     // Helper method to navigate back to the previous fragment
     private void navigateBack() {
@@ -247,6 +315,24 @@ public class QuizFragment extends Fragment {
             Log.e(TAG, "Activity is null.");
         }
     }
+
+//    private void processAnswer(Question question, String selectedAnswer, Button selectedButton) {
+//        if (isAnswered) return;
+//
+//        isAnswered = true;
+//        resetButtonColors();
+//
+//        saveUserAnswer(question, selectedAnswer);
+//
+//        if (selectedAnswer.equals(question.getAnswer())) {
+//            selectedButton.setBackgroundColor(Color.GREEN);
+//        } else {
+//            selectedButton.setBackgroundColor(Color.RED);
+//            highlightCorrectAnswer(question);
+//        }
+//
+//        nextButton.setVisibility(View.VISIBLE);
+//    }
 
     private void processAnswer(Question question, String selectedAnswer, Button selectedButton) {
         if (isAnswered) return;
@@ -263,8 +349,37 @@ public class QuizFragment extends Fragment {
             highlightCorrectAnswer(question);
         }
 
+        // Show the appropriate button after answering
+        if (currentQuestionIndex == questions.size() - 1) {
+            nextButton.setText("Finish");
+        } else {
+            nextButton.setText("Next");
+        }
         nextButton.setVisibility(View.VISIBLE);
     }
+
+
+//    private void restoreAnswerState(Question question) {
+//        String questionId = questionIds.get(currentQuestionIndex);
+//        Log.d(TAG, "Restoring progress for question ID: " + questionId);
+//
+//        db.collection("user_question")
+//                .whereEqualTo("userIdRef", db.collection("users").document(userId))
+//                .whereEqualTo("questionIdRef", db.collection("questions").document(questionId))
+//                .get()
+//                .addOnCompleteListener(task -> {
+//                    if (task.isSuccessful() && task.getResult() != null && !task.getResult().isEmpty()) {
+//                        DocumentSnapshot document = task.getResult().getDocuments().get(0);
+//                        String selectedAnswer = document.getString("selectedAnswer");
+//                        Boolean isCorrect = document.getBoolean("isCorrect");
+//
+//                        if (selectedAnswer != null && isCorrect != null) {
+//                            highlightAnswer(question, selectedAnswer, isCorrect);
+//                            disableOptions(); // Disable only if the question is answered
+//                        }
+//                    }
+//                });
+//    }
 
     private void restoreAnswerState(Question question) {
         String questionId = questionIds.get(currentQuestionIndex);
@@ -282,8 +397,12 @@ public class QuizFragment extends Fragment {
 
                         if (selectedAnswer != null && isCorrect != null) {
                             highlightAnswer(question, selectedAnswer, isCorrect);
-                            disableOptions(); // Disable only if the question is answered
+                            disableOptions();
+                            nextButton.setVisibility(View.VISIBLE); // Show Next/Finish button if the question is answered
                         }
+                    } else {
+                        Log.d(TAG, "No answer recorded for this question.");
+                        nextButton.setVisibility(View.GONE); // Hide Next/Finish button if no answer is recorded
                     }
                 });
     }

@@ -39,8 +39,6 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 return;
             }
 
-            // Generate random password
-            String newPassword = generateRandomPassword(8);
 
             // Send reset email
             mAuth.sendPasswordResetEmail(email).addOnCompleteListener(task -> {
@@ -58,18 +56,5 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 }
             });
         });
-    }
-
-    private String generateRandomPassword(int length) {
-        final String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()-_=+";
-        SecureRandom random = new SecureRandom();
-        StringBuilder password = new StringBuilder();
-
-        for (int i = 0; i < length; i++) {
-            int index = random.nextInt(chars.length());
-            password.append(chars.charAt(index));
-        }
-
-        return password.toString();
     }
 }

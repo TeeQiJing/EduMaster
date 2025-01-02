@@ -67,10 +67,7 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_leaderboard) {
                 loadFragment(leaderboardFragment);
                 return true;
-            } else if (itemId == R.id.nav_chat) {
-                loadFragment(chatFragment);
-                return true;
-            } else if (itemId == R.id.nav_profile) {
+            }  else if (itemId == R.id.nav_profile) {
                 loadFragment(profileFragment);
                 return true;
             }

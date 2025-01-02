@@ -3,43 +3,42 @@ package com.practical.edumasters.models;
 import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CommunityComment {
     private String commentID;
-    private String userID;
-    private String comment;
-    private long timestamp;
+    private String commentUserID;
+    private String commentContent;
+    private long commentTimestamp;
     private String username;
     private String avatarURL;
 
     public CommunityComment() {}
 
-    public CommunityComment(String commentID, String userID, String comment, long timestamp, String username, String avatarURL) {
+    public CommunityComment(String commentID, String commentUserID, String comment, long commentTimestamp) {
         this.commentID = commentID;
-        this.userID = userID;
-        this.comment = comment;
-        this.timestamp = timestamp;
-        this.username = username;
-        this.avatarURL = avatarURL;
+        this.commentUserID = commentUserID;
+        this.commentContent = comment;
+        this.commentTimestamp = commentTimestamp;
+//        this.username = username;
+//        this.avatarURL = avatarURL;
     }
 
     public String getCommentID() { return commentID; }
     public void setCommentID(String commentID) { this.commentID = commentID; }
 
-    public String getUserID() { return userID; }
-    public void setUserID(String userID) { this.userID = userID; }
+    public String getCommentUserID() { return commentUserID; }
+    public void setCommentUserID(String commentUserID) { this.commentUserID = commentUserID; }
 
-    public String getComment() { return comment; }
-    public void setComment(String comment) { this.comment = comment; }
+    public String getCommentContent() { return commentContent; }
+    public void setCommentContent(String comment) { this.commentContent = comment; }
 
-    public long getTimestamp() { return timestamp; }
-    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
+    public long getCommentTimestamp() { return commentTimestamp; }
+    public void setCommentTimestamp(long commentTimestamp) { this.commentTimestamp = commentTimestamp; }
 
     public String getUsername() { return username; }
     public void setUsername(String username) { this.username = username; }
@@ -47,34 +46,41 @@ public class CommunityComment {
     public String getAvatarURL() { return avatarURL; }
     public void setAvatarURL(String avatarURL) { this.avatarURL = avatarURL; }
 
-    private void addComment(String postID, String commentText) {
-        // Get Firestore instance
+    public static void addComment(String postID, String commentContent, AddCommentCallback callback) {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
+        String commentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        long commentTimestamp = System.currentTimeMillis();
 
-        // Create a comment object
-        String userID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String timestamp = String.valueOf(System.currentTimeMillis());
+        Map<String, Object> commentData = new HashMap<>();
+        commentData.put("commentUserID", commentUserID);
+        commentData.put("commentContent", commentContent);
+        commentData.put("commentTimestamp", commentTimestamp);
 
-        Map<String, Object> comment = new HashMap<>();
-        comment.put("commentUserID", userID);
-        comment.put("commentContent", commentText);
-        comment.put("commentTimestamp", timestamp);
-
-        // Add the comment to the "comments" subcollection of the specified post
-        db.collection("community").document(postID)
-                .collection("comments")
-                .add(comment)
+        db.collection("community").document(postID).collection("comments")
+                .add(commentData)
                 .addOnSuccessListener(documentReference -> {
-                    this.commentID = documentReference.getId();
+                    String commentID = documentReference.getId();
+                    documentReference.update("commentID", commentID) // Add the commentID field
+                            .addOnSuccessListener(aVoid -> {
+                                if (callback != null) callback.onSuccess(documentReference);
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e("AddComment", "Error adding comment", e);
+                    Log.e("CommunityComment", "Error adding comment", e);
+                    if (callback != null) callback.onFailure(e);
                 });
+    }
+
+    // Callback interface for comment operations
+    public interface AddCommentCallback {
+        void onSuccess(DocumentReference documentReference);
+        void onFailure(Exception e);
     }
 
     // Fetch username and avatar from the 'users' collection
     public void fetchUserDetails(FirebaseFirestore db, CommunityComment.UserDetailsCallback callback) {
-        db.collection("users").document(userID)
+        Log.d("User ID", commentUserID);
+        db.collection("users").document(commentUserID)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
@@ -98,7 +104,7 @@ public class CommunityComment {
     // Calculate how long ago the post was created
     public String getTimeAgo() {
         long currentTime = System.currentTimeMillis();
-        long elapsedTime = currentTime - timestamp;
+        long elapsedTime = currentTime - commentTimestamp;
 
         long seconds = elapsedTime / 1000;
         long minutes = seconds / 60;
@@ -116,4 +122,6 @@ public class CommunityComment {
         if (minutes > 0) return minutes + (minutes == 1 ? " minute ago" : " minutes ago");
         return seconds + (seconds == 1 ? " second ago" : " seconds ago");
     }
+
+
 }

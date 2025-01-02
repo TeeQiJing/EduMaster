@@ -47,9 +47,10 @@ public class CommunityFragment extends Fragment {
     private final List<CommunityPost> postList = new ArrayList<>();
     private ViewGroup rootView; // To manage the dim background
 
-    public CommunityFragment() {
-        // Required empty public constructor
-    }
+    private LinearLayoutManager layoutManager;
+    private int lastKnownScrollPosition = 0; // To store the scroll position
+
+    public CommunityFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -61,7 +62,8 @@ public class CommunityFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_community, container, false);
+        View view = inflater.inflate(R.layout.fragment_community, container, false);
+        return view;
     }
 
     @Override
@@ -73,9 +75,16 @@ public class CommunityFragment extends Fragment {
 
         // Setup RecyclerView
         postsRecyclerView = view.findViewById(R.id.posts_recycler_view);
-        postsRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
+        layoutManager = new LinearLayoutManager(getContext()); // Initialize layoutManager
+        postsRecyclerView.setLayoutManager(layoutManager); // Set layout manager to RecyclerView
         adapter = new CommunityAdapter(postList, db, getContext());
         postsRecyclerView.setAdapter(adapter);
+
+        if (savedInstanceState != null) {
+            lastKnownScrollPosition = savedInstanceState.getInt("scroll_position", 0);
+        }
+        // Set the RecyclerView's scroll position
+        postsRecyclerView.scrollToPosition(lastKnownScrollPosition);
 
         // Load posts from Firestore
         loadPosts();
@@ -109,30 +118,46 @@ public class CommunityFragment extends Fragment {
     private void loadPosts() {
         db.collection("community")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    postList.clear(); // Clear the list before adding new posts
-                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                        // Safely fetch and parse data
-                        String postID = doc.getId();
-                        String userID = doc.getString("userID");
-                        String title = doc.getString("title");
-                        String content = doc.getString("content");
-                        long timestamp = parseTimestamp(doc.get("timestamp"));
-                        List<String> likedBy = (List<String>) doc.get("likedBy");
-                        int numOfComments = doc.getLong("numOfComments") != null ? doc.getLong("numOfComments").intValue() : 0;
-
-                        // Create a CommunityPost object and add it to the list
-                        CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy, numOfComments);
-                        post.setPostID(postID);
-                        postList.add(post);
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Toast.makeText(getContext(), "Error loading posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        return;
                     }
-                    adapter.notifyDataSetChanged(); // Refresh the RecyclerView
-                })
-                .addOnFailureListener(e -> Toast.makeText(getContext(), "Failed to load posts: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-    }
 
-    private long parseTimestamp(Object timestampObj) {
+                    if (queryDocumentSnapshots != null) {
+                        postList.clear();
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            String postID = doc.getId();
+                            String userID = doc.getString("userID");
+                            String title = doc.getString("title");
+                            String content = doc.getString("content");
+                            long timestamp = parseTimestamp(doc.get("timestamp"));
+                            List<String> likedBy = (List<String>) doc.get("likedBy");
+
+                            // Create a CommunityPost object
+                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy);
+                            post.setPostID(postID);
+                            postList.add(post);
+
+//                            // Fetch and update the latest comment count
+//                            post.fetchCommentCount(db, new CommunityPost.FetchCommentCountCallback() {
+//                                @Override
+//                                public void onSuccess(int commentCount) {
+//                                    adapter.notifyDataSetChanged(); // Update the UI
+//                                }
+//
+//                                @Override
+//                                public void onFailure(Exception ex) {
+//                                    // Log or handle the error if needed
+//                                }
+//                            });
+                        }
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+}
+
+        private long parseTimestamp(Object timestampObj) {
         if (timestampObj instanceof Number) {
             return ((Number) timestampObj).longValue();
         } else if (timestampObj instanceof com.google.firebase.Timestamp) {
@@ -195,14 +220,20 @@ public class CommunityFragment extends Fragment {
             String userID = currentUser != null ? currentUser.getUid() : "Unknown User";
             long timestamp = System.currentTimeMillis();
 
-            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(), 0);
+            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>());
             post.saveToFirebase(db, new CommunityPost.SaveCallback() {
                 @Override
                 public void onSuccess(String postId) {
                     Toast.makeText(getContext(), "Post added successfully!", Toast.LENGTH_SHORT).show();
                     popupWindow.dismiss();
                     rootView.removeView(dimBackgroundView);
-                    loadPosts(); // Refresh posts
+                    //loadPosts(); // Refresh posts
+                    // Update the post with the generated post ID
+                    post.setPostID(postId);
+                    // Notify the adapter about the new post
+                    adapter.notifyDataSetChanged();
+                    // Scroll to the top of the list to show the new post
+                    postsRecyclerView.scrollToPosition(0);
                 }
 
                 @Override
@@ -226,5 +257,20 @@ public class CommunityFragment extends Fragment {
             }
         }
         adapter.updateList(filteredPosts);
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        // Ensure layoutManager is not null before calling findFirstVisibleItemPosition
+        if (layoutManager != null) {
+            lastKnownScrollPosition = layoutManager.findFirstVisibleItemPosition();
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("scroll_position", lastKnownScrollPosition);
     }
 }
