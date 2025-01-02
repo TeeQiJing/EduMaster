@@ -23,6 +23,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.TaskCompletionSource;
 import com.google.android.gms.tasks.Tasks;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.firebase.auth.FirebaseAuth;
@@ -30,15 +31,22 @@ import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.ChapterAdapter;
 import com.practical.edumasters.models.Chapter;
 import com.practical.edumasters.models.Quiz;
 
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -453,23 +461,41 @@ private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes,
         Log.d(TAG, "UID: " + userId);
         Log.d(TAG, "Lesson Id: " + lessonId);
 
-        // Create references to the user and lesson documents
+        final MutableDateWrapper dateWrapper = new MutableDateWrapper(); // Wrapper object for date
+
+        firstTime(check -> {
+            Log.d("Cert", check);
+            if (progressString.equals("100") && check.equals("null")) {
+                Date currentDate = new Date();
+                SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+                dateWrapper.date = formatter.format(currentDate); // Update the wrapper's date
+            } else if (!check.equals("null")) {
+                dateWrapper.date = check; // Set date from `check`
+            } else {
+                dateWrapper.date = "null";
+            }
+
+            // After determining the date, perform Firestore update
+            performFirestoreUpdate(userId, lessonId, progressString, dateWrapper.date);
+        });
+    }
+
+    // Helper method to perform Firestore update
+    private void performFirestoreUpdate(String userId, String lessonId, String progressString, String date) {
         DocumentReference userRef = db.collection("users").document(userId);
         DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
 
-        // Query to find the document where both userId (userRef) and lessonId (lessonRef) match
         db.collection("current_lesson")
                 .whereEqualTo("userId", userRef)
                 .whereEqualTo("lessonId", lessonRef)
                 .get()
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                        // Assuming only one matching document is found
                         DocumentSnapshot document = task.getResult().getDocuments().get(0);
                         Log.d(TAG, "Current Lesson Document Id: " + document.getId());
                         db.collection("current_lesson")
-                                .document(document.getId())  // Get the document ID from the result
-                                .update("progress", progressString)  // Update only the progress field
+                                .document(document.getId())
+                                .update("progress", progressString, "date", date)
                                 .addOnSuccessListener(aVoid -> {
                                     Log.d(TAG, "Progress updated successfully");
                                 })
@@ -482,6 +508,36 @@ private void arrangeContentInPattern(List<Chapter> chapters, List<Quiz> quizzes,
                 });
     }
 
+    // Wrapper class for a mutable date
+    private static class MutableDateWrapper {
+        public String date;
+    }
+
+    private void firstTime(ResultCallback callback) {
+        String userId = mAuth.getCurrentUser().getUid();
+        DocumentReference userRef = db.collection("users").document(userId);
+        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+
+        Query currentLessonQuery = db.collection("current_lesson")
+                .whereEqualTo("userId", userRef)
+                .whereEqualTo("lessonId", lessonRef);
+
+        currentLessonQuery.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful() && !task.getResult().isEmpty()) {
+                DocumentSnapshot document = task.getResult().getDocuments().get(0);
+                String check = document.getString("date");
+                callback.onResult(check);
+            } else {
+                Log.e(TAG, "No matching progress document found for the user and lesson.");
+                callback.onResult("null");
+            }
+        });
+    }
+
+    // Define the callback interface
+    public interface ResultCallback {
+        void onResult(String result);
+    }
 
 
     private void enrollInLesson(String userId, String lessonId) {

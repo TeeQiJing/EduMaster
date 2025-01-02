@@ -250,8 +250,17 @@ public class ProfileFragment extends Fragment {
     }
 
     private void navigateToCertificate() {
-        // Implement navigation to certificate activity or fragment
-        Toast.makeText(getContext(), "Navigating to Certificate", Toast.LENGTH_SHORT).show();
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .setCustomAnimations(
+                        R.anim.slide_in_right,  // Animation for fragment entry
+                        R.anim.slide_out_left, // Animation for fragment exit
+                        R.anim.slide_in_left,  // Animation for returning to the fragment
+                        R.anim.slide_out_right // Animation for exiting back
+                )
+                .replace(R.id.fragment_container, new CertFragment()) // Replace `fragment_container` with your container ID
+                .addToBackStack(null)
+                .commit();
     }
 
 
