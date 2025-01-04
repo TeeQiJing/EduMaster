@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class LessonFragment extends Fragment {
@@ -760,22 +761,42 @@ public class LessonFragment extends Fragment {
 
         final MutableDateWrapper dateWrapper = new MutableDateWrapper(); // Wrapper object for date
 
+//        firstTime(check -> {
+////            Log.d("Cert", check);
+//            if (progressString.equals("100") && "null".equals(check)) {
+//                Date currentDate = new Date();
+//                SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
+//                dateWrapper.date = formatter.format(currentDate); // Update the wrapper's date
+//            } else if (!check.equals("null")) {
+//                dateWrapper.date = check; // Set date from `check`
+//            } else {
+//                dateWrapper.date = "null";
+//            }
+//
+//            // After determining the date, perform Firestore update
+//            performFirestoreUpdate(userId, lessonId, progressString, dateWrapper.date);
+//        });
+
         firstTime(check -> {
-            Log.d("Cert", check);
-            if (progressString.equals("100") && check.equals("null")) {
+            if (progressString.equals("100") && "null".equals(check)) {
                 Date currentDate = new Date();
-                SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH);
-                dateWrapper.date = formatter.format(currentDate); // Update the wrapper's date
-            } else if (!check.equals("null")) {
-                dateWrapper.date = check; // Set date from `check`
+                SimpleDateFormat formatter = new SimpleDateFormat("MMMM d, yyyy h:mm a", Locale.ENGLISH);
+                formatter.setTimeZone(TimeZone.getTimeZone("Asia/Kuala_Lumpur"));
+                dateWrapper.date = formatter.format(currentDate);
+            } else if (check != null) {
+                dateWrapper.date = check;
             } else {
                 dateWrapper.date = "null";
             }
 
-            // After determining the date, perform Firestore update
+            // Perform Firestore update
             performFirestoreUpdate(userId, lessonId, progressString, dateWrapper.date);
         });
+
+
     }
+
+
 
     // Helper method to perform Firestore update
     private void performFirestoreUpdate(String userId, String lessonId, String progressString, String date) {
@@ -810,26 +831,47 @@ public class LessonFragment extends Fragment {
         public String date;
     }
 
-    private void firstTime(ResultCallback callback) {
-        String userId = mAuth.getCurrentUser().getUid();
-        DocumentReference userRef = db.collection("users").document(userId);
-        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+//    private void firstTime(ResultCallback callback) {
+//        String userId = mAuth.getCurrentUser().getUid();
+//        DocumentReference userRef = db.collection("users").document(userId);
+//        DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
+//
+//        Query currentLessonQuery = db.collection("current_lesson")
+//                .whereEqualTo("userId", userRef)
+//                .whereEqualTo("lessonId", lessonRef);
+//
+//        currentLessonQuery.get().addOnCompleteListener(task -> {
+//            if (task.isSuccessful() && !task.getResult().isEmpty()) {
+//                DocumentSnapshot document = task.getResult().getDocuments().get(0);
+//                String check = document.getString("date");
+//                callback.onResult(check);
+//            } else {
+//                Log.e(TAG, "No matching progress document found for the user and lesson.");
+//                callback.onResult("null");
+//            }
+//        });
+//    }
+private void firstTime(ResultCallback callback) {
+    String userId = mAuth.getCurrentUser().getUid();
+    DocumentReference userRef = db.collection("users").document(userId);
+    DocumentReference lessonRef = db.collection("total_lesson").document(lessonId);
 
-        Query currentLessonQuery = db.collection("current_lesson")
-                .whereEqualTo("userId", userRef)
-                .whereEqualTo("lessonId", lessonRef);
+    Query currentLessonQuery = db.collection("current_lesson")
+            .whereEqualTo("userId", userRef)
+            .whereEqualTo("lessonId", lessonRef);
 
-        currentLessonQuery.get().addOnCompleteListener(task -> {
-            if (task.isSuccessful() && !task.getResult().isEmpty()) {
-                DocumentSnapshot document = task.getResult().getDocuments().get(0);
-                String check = document.getString("date");
-                callback.onResult(check);
-            } else {
-                Log.e(TAG, "No matching progress document found for the user and lesson.");
-                callback.onResult("null");
-            }
-        });
-    }
+    currentLessonQuery.get().addOnCompleteListener(task -> {
+        if (task.isSuccessful() && !task.getResult().isEmpty()) {
+            DocumentSnapshot document = task.getResult().getDocuments().get(0);
+            String check = document.getString("date");
+            callback.onResult(check != null ? check : "null");
+        } else {
+            Log.e(TAG, "No matching progress document found for the user and lesson.");
+            callback.onResult("null");
+        }
+    });
+}
+
 
     // Define the callback interface
     public interface ResultCallback {
