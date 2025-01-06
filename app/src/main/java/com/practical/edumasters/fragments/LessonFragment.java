@@ -462,8 +462,8 @@ public class LessonFragment extends Fragment {
                     if (task.isSuccessful()) {
                         long completedQuizCount = task.getResult().size();
 
-                        // Step 2: Check if the user has completed at least 5 quiz
-                        if (completedQuizCount == 1) {
+                        // Step 2: Check if the user has completed at least 3 quiz
+                        if (completedQuizCount == 3) {
                             // Step 3: Verify if the badge is already granted
                             db.collection("user_badges")
                                     .whereEqualTo("userIdRef", userRef)
