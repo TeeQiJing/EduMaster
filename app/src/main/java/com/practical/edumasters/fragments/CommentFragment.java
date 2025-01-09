@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -29,7 +30,6 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.CommentAdapter;
-import com.practical.edumasters.adapters.CommunityAdapter;
 import com.practical.edumasters.models.CommunityComment;
 import com.practical.edumasters.models.CommunityPost;
 
@@ -50,11 +50,12 @@ public class CommentFragment extends Fragment {
     private FirebaseFirestore db;
 
     private CommunityPost post;
-    private ImageView avatarPost,likeOverlayIcon;
+    private ImageView avatarPost,likeOverlayIcon,imagePost;
     private TextView usernamePost, timestampPost, titlePost, contentPost;
     private ImageButton btnBack;
     private EditText inputComment;
     private Button btnSendComment,postLikes,postComments;
+    private ConstraintLayout imageHolder;
 
     public CommentFragment() {
         // Required empty public constructor
@@ -101,6 +102,8 @@ public class CommentFragment extends Fragment {
         postLikes = view.findViewById(R.id.post_likes);
         postComments = view.findViewById(R.id.post_comments);
         likeOverlayIcon = view.findViewById(R.id.ic_liked);
+        imageHolder = view.findViewById(R.id.imageHolder);
+        imagePost = view.findViewById(R.id.post_image);
 
         loadUpperPost(post);
         String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -217,7 +220,7 @@ public class CommentFragment extends Fragment {
             @Override
             public void onSuccess(String username, String avatarUrl) {
                 usernamePost.setText(username);
-                displayAvatar(avatarUrl, avatarPost);
+                displayImage(avatarUrl, avatarPost);
             }
 
             @Override
@@ -244,9 +247,16 @@ public class CommentFragment extends Fragment {
                 Toast.makeText(getContext(), "Error loading comments: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
+
+        if (post.getImage()!=null){
+            imageHolder.setVisibility(View.VISIBLE);
+            displayImage(post.getImage(), imagePost);
+        } else {
+            imageHolder.setVisibility(View.GONE);
+        }
     }
 
-    private void displayAvatar(String avatarBase64, ImageView imageView) {
+    private void displayImage(String avatarBase64, ImageView imageView) {
         if (avatarBase64 != null && !avatarBase64.isEmpty()) {
             try {
                 byte[] decodedBytes = android.util.Base64.decode(avatarBase64, android.util.Base64.DEFAULT);

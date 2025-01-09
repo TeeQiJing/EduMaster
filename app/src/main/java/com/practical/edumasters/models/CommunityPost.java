@@ -34,18 +34,20 @@ public class CommunityPost implements Serializable {
     private List<CommunityComment> commentList;
     private String username;
     private String avatarURL; // Base64 String for the avatar
+    private String image;
 
-    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy) {
+    public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy,String image) {
         this.userID = userID;
         this.title = title;
         this.content = content;
         this.timestamp = timestamp;
         this.likedBy = likedBy != null ? likedBy : new ArrayList<>();
         this.commentList = new ArrayList<>();
+        this.image = image;
     }
 
-    public String getPostID(){
-        return this.postID;
+    public String getPostID() {
+        return postID;
     }
     public void setPostID(String postID) {
         this.postID = postID;
@@ -71,7 +73,40 @@ public class CommunityPost implements Serializable {
     public List<CommunityComment> getCommentList(){
         return commentList;
     }
+    public void setContent(String content) {
+        this.content = content;
+    }
+    public void setUserID(String userID) {
+        this.userID = userID;
+    }
+    public void setTitle(String title) {
+        this.title = title;
+    }
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+    public void setLikedBy(List<String> likedBy) {
+        this.likedBy = likedBy;
+    }
+    public void setCommentList(List<CommunityComment> commentList) {
+        this.commentList = commentList;
+    }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    public String getAvatarURL() {
+        return avatarURL;
+    }
+    public void setAvatarURL(String avatarURL) {
+        this.avatarURL = avatarURL;
+    }
+    public String getImage() {
+        return image;
+    }
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     // Save the CommunityPost to Firestore
     public void saveToFirebase(FirebaseFirestore db, SaveCallback callback) {
@@ -81,6 +116,7 @@ public class CommunityPost implements Serializable {
         post.put("content", content);
         post.put("timestamp", timestamp);
         post.put("likedBy", likedBy);
+        post.put("image",image);
 
         db.collection("community")
                 .add(post) // This adds the post and generates a unique document ID

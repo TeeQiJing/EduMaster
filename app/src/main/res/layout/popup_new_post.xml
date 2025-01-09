@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:background="@drawable/popup_background"
     android:padding="16dp">
 
@@ -65,15 +65,39 @@
     <!-- Post Button -->
     <Button
         android:id="@+id/popup_post"
-        android:layout_width="wrap_content"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/popup_upload"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:background="@drawable/button_gradient"
+        android:text="Post"
+        android:textColor="@color/white"
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
+
+    <Button
+        android:id="@+id/popup_upload"
+        android:layout_width="140dp"
         android:layout_height="wrap_content"
         android:layout_below="@id/popup_post_content"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="16dp"
-        android:text="Post"
+        android:background="@drawable/button_gradient_outline"
+        android:text="Upload Image"
         android:textColor="@color/white"
-        app:backgroundTint="@null"
-        android:background="@drawable/button_gradient"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        app:backgroundTint="@null" />
+
+    <ImageView
+        android:id="@+id/noti"
+        android:layout_width="15dp"
+        android:layout_height="15dp"
+        android:layout_above="@id/popup_upload"
+        android:layout_marginLeft="-20dp"
+        android:layout_marginBottom="-28dp"
+        android:layout_toRightOf="@id/popup_upload"
+        android:visibility="invisible"
+        app:srcCompat="@drawable/button_gradient" />
 
 </RelativeLayout>

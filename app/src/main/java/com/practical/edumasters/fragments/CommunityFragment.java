@@ -1,5 +1,13 @@
 package com.practical.edumasters.fragments;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.net.Uri;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
@@ -9,6 +17,8 @@ import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.TextPaint;
+import android.util.Base64;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -16,6 +26,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.PopupWindow;
 import android.widget.SearchView;
 import android.widget.Toast;
@@ -31,6 +42,8 @@ import com.practical.edumasters.R;
 import com.practical.edumasters.adapters.CommunityAdapter;
 import com.practical.edumasters.models.CommunityPost;
 
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,6 +62,10 @@ public class CommunityFragment extends Fragment {
 
     private LinearLayoutManager layoutManager;
     private int lastKnownScrollPosition = 0; // To store the scroll position
+
+    private static final int PICK_IMAGE_REQUEST = 1;
+    private String imageToUpload = null; // Store the Base64 string of the image
+    private ImageView noti;
 
     public CommunityFragment() {}
 
@@ -133,24 +150,12 @@ public class CommunityFragment extends Fragment {
                             String content = doc.getString("content");
                             long timestamp = parseTimestamp(doc.get("timestamp"));
                             List<String> likedBy = (List<String>) doc.get("likedBy");
+                            String image = doc.getString("image");
 
                             // Create a CommunityPost object
-                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy);
+                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy,image);
                             post.setPostID(postID);
                             postList.add(post);
-
-//                            // Fetch and update the latest comment count
-//                            post.fetchCommentCount(db, new CommunityPost.FetchCommentCountCallback() {
-//                                @Override
-//                                public void onSuccess(int commentCount) {
-//                                    adapter.notifyDataSetChanged(); // Update the UI
-//                                }
-//
-//                                @Override
-//                                public void onFailure(Exception ex) {
-//                                    // Log or handle the error if needed
-//                                }
-//                            });
                         }
                         adapter.notifyDataSetChanged();
                     }
@@ -202,6 +207,11 @@ public class CommunityFragment extends Fragment {
         EditText postContent = popupView.findViewById(R.id.popup_post_content);
         ImageButton exitButton = popupView.findViewById(R.id.popup_exit);
         Button postButton = popupView.findViewById(R.id.popup_post);
+        Button uploadImageButton = popupView.findViewById(R.id.popup_upload);
+        setGradientText(uploadImageButton);
+        noti = popupView.findViewById(R.id.noti);
+
+        uploadImageButton.setOnClickListener(view -> openImagePicker());
 
         // Exit button click listener
         exitButton.setOnClickListener(v -> popupWindow.dismiss());
@@ -220,7 +230,7 @@ public class CommunityFragment extends Fragment {
             String userID = currentUser != null ? currentUser.getUid() : "Unknown User";
             long timestamp = System.currentTimeMillis();
 
-            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>());
+            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(),imageToUpload);
             post.saveToFirebase(db, new CommunityPost.SaveCallback() {
                 @Override
                 public void onSuccess(String postId) {
@@ -272,5 +282,64 @@ public class CommunityFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("scroll_position", lastKnownScrollPosition);
+    }
+
+    private void setGradientText(Button button) {
+        button.post(() -> {
+            TextPaint paint = button.getPaint();
+
+            // Define the width and height of the button
+            float width = button.getWidth();
+            float height = button.getHeight();
+
+            // Create the LinearGradient with an angle of -45 degrees
+            Shader textShader = new LinearGradient(
+                    0, height,  // Start point (bottom-left)
+                    width, 0,   // End point (top-right)
+                    new int[]{
+                            Color.parseColor("#7512FF"),
+                            Color.parseColor("#3978FF"),
+                            Color.parseColor("#94BBE9")
+                    },
+                    null,
+                    Shader.TileMode.CLAMP
+            );
+
+            paint.setShader(textShader);
+            button.invalidate(); // Refresh the button to apply the gradient
+        });
+    }
+
+    private void openImagePicker() {
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.setType("image/*");
+        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK && data != null && data.getData() != null) {
+            Uri imageUri = data.getData();
+            try {
+                InputStream inputStream = requireActivity().getContentResolver().openInputStream(imageUri);
+                Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+
+                // Convert Bitmap to Base64
+                imageToUpload = encodeImageToBase64(bitmap);
+                noti.setVisibility(View.VISIBLE);
+                Toast.makeText(getContext(), "Image selected", Toast.LENGTH_SHORT).show();
+            } catch (Exception e) {
+                Toast.makeText(getContext(), "Failed to process the image: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        }
+    }
+
+    private String encodeImageToBase64(Bitmap bitmap) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        byte[] byteArray = outputStream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 }

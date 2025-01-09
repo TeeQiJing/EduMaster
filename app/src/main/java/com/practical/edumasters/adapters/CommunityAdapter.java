@@ -18,6 +18,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
@@ -62,7 +63,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
             @Override
             public void onSuccess(String username, String avatarUrl) {
                 holder.username.setText(username);
-                displayAvatar(avatarUrl, holder.avatar);
+                displayImage(avatarUrl, holder.avatar);
             }
 
             @Override
@@ -118,6 +119,13 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
             transaction.addToBackStack(null);
             transaction.commit();
         });
+
+        if (post.getImage()!=null){
+            holder.imageHolder.setVisibility(View.VISIBLE);
+            displayImage(post.getImage(), holder.postImage);
+        } else {
+            holder.imageHolder.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -161,7 +169,8 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         TextView username, postTime, postTitle, postContent;
         public Button postLikes;
         Button postComments;
-        ImageView avatar,likeOverlayIcon;
+        ImageView avatar,likeOverlayIcon,postImage;
+        ConstraintLayout imageHolder;
 
 
         public PostViewHolder(@NonNull View itemView) {
@@ -174,10 +183,12 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
             postComments = itemView.findViewById(R.id.post_comments);
             avatar = itemView.findViewById(R.id.post_user_avatar);
             likeOverlayIcon = itemView.findViewById(R.id.ic_liked);
+            postImage = itemView.findViewById(R.id.post_image);
+            imageHolder = itemView.findViewById(R.id.imageHolder);
         }
     }
 
-    private void displayAvatar(String avatarBase64, ImageView imageView) {
+    private void displayImage(String avatarBase64, ImageView imageView) {
         if (avatarBase64 != null && !avatarBase64.isEmpty()) {
             try {
                 byte[] decodedBytes = android.util.Base64.decode(avatarBase64, android.util.Base64.DEFAULT);
