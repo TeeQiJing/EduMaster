@@ -135,6 +135,36 @@ public class CommunityFragment extends Fragment {
         });
     }
 
+//    private void loadPosts() {
+//        db.collection("community")
+//                .orderBy("timestamp", Query.Direction.DESCENDING)
+//                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+//                    if (e != null) {
+//                        Toast.makeText(getContext(), "Error loading posts: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                        return;
+//                    }
+//
+//                    if (queryDocumentSnapshots != null) {
+//                        postList.clear();
+//                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+//                            String postID = doc.getId();
+//                            String userID = doc.getString("userID");
+//                            String title = doc.getString("title");
+//                            String content = doc.getString("content");
+//                            long timestamp = parseTimestamp(doc.get("timestamp"));
+//                            List<String> likedBy = (List<String>) doc.get("likedBy");
+//                            String image = doc.getString("image");
+//
+//                            // Create a CommunityPost object
+//                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy, image);
+//                            post.setPostID(postID);
+//                            postList.add(post);
+//                        }
+//                        adapter.notifyDataSetChanged();
+//                    }
+//                });
+//}
+
     private void loadPosts() {
         db.collection("community")
                 .orderBy("timestamp", Query.Direction.DESCENDING)
@@ -144,8 +174,8 @@ public class CommunityFragment extends Fragment {
                         return;
                     }
 
-                    if (queryDocumentSnapshots != null) {
-                        postList.clear();
+                    if (queryDocumentSnapshots != null && !queryDocumentSnapshots.isEmpty()) {
+                        postList.clear(); // Clear the list to avoid duplicates
                         for (DocumentSnapshot doc : queryDocumentSnapshots) {
                             String postID = doc.getId();
                             String userID = doc.getString("userID");
@@ -161,11 +191,13 @@ public class CommunityFragment extends Fragment {
                             postList.add(post);
                         }
                         adapter.notifyDataSetChanged();
+                        postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the latest post
                     }
                 });
-}
+    }
 
-        private long parseTimestamp(Object timestampObj) {
+
+    private long parseTimestamp(Object timestampObj) {
         if (timestampObj instanceof Number) {
             return ((Number) timestampObj).longValue();
         } else if (timestampObj instanceof com.google.firebase.Timestamp) {
