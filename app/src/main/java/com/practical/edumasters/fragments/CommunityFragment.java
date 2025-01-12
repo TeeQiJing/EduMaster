@@ -239,14 +239,11 @@ public class CommunityFragment extends Fragment {
                 public void onSuccess(String postId) {
                     Toast.makeText(getContext(), "Post added successfully!", Toast.LENGTH_SHORT).show();
                     popupWindow.dismiss();
+
                     rootView.removeView(dimBackgroundView);
-                    //loadPosts(); // Refresh posts
-                    // Update the post with the generated post ID
+
                     post.setPostID(postId);
-                    // Notify the adapter about the new post
-                    adapter.notifyDataSetChanged();
-                    // Scroll to the top of the list to show the new post
-                    postsRecyclerView.scrollToPosition(0);
+                    postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the new post
                 }
 
                 @Override

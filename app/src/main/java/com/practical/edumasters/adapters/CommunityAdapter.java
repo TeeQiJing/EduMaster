@@ -1,5 +1,8 @@
 package com.practical.edumasters.adapters;
 
+import static java.security.AccessController.getContext;
+
+import android.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -14,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -126,6 +130,14 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         } else {
             holder.imageHolder.setVisibility(View.GONE);
         }
+
+        // Handle delete button visibility and click
+        if (currentUserID.equals(post.getUserID())) {
+            holder.postDelete.setVisibility(View.VISIBLE);
+        } else {
+            holder.postDelete.setVisibility(View.GONE);
+        }
+        holder.postDelete.setOnClickListener(v -> showPostDeleteConfirmationDialog(position,post));
     }
 
     @Override
@@ -171,7 +183,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
         Button postComments;
         ImageView avatar,likeOverlayIcon,postImage;
         ConstraintLayout imageHolder;
-
+        ImageButton postDelete;
 
         public PostViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -185,6 +197,7 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
             likeOverlayIcon = itemView.findViewById(R.id.ic_liked);
             postImage = itemView.findViewById(R.id.post_image);
             imageHolder = itemView.findViewById(R.id.imageHolder);
+            postDelete = itemView.findViewById(R.id.post_delete);
         }
     }
 
@@ -206,5 +219,40 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
     public void updateList(List<CommunityPost> filteredPosts) {
         this.postList = filteredPosts;
         notifyDataSetChanged();
+    }
+
+    private void showPostDeleteConfirmationDialog(int position, CommunityPost post) {
+        // Inflate the custom layout for the dialog
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View dialogView = inflater.inflate(R.layout.dialog_post_delete_confirmation, null);
+
+        // Build the AlertDialog
+        AlertDialog dialog = new AlertDialog.Builder(context)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        // Set up Cancel button
+        Button cancelButton = dialogView.findViewById(R.id.dialog_post_delete_cancel);
+        cancelButton.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog on cancel
+
+        // Set up Delete button
+        Button deleteButton = dialogView.findViewById(R.id.dialog_post_delete_confirmed);
+        deleteButton.setOnClickListener(v -> {
+            dialog.dismiss(); // Dismiss dialog
+            db.collection("community").document(post.getPostID())
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        Toast.makeText(context, "Post deleted successfully", Toast.LENGTH_SHORT).show();
+                            postList.remove(post);
+                            notifyDataSetChanged();
+                        })
+                        .addOnFailureListener(e -> {
+                            Toast.makeText(context, "Failed to delete post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        });
+            dialog.dismiss(); // Dismiss dialog
+        });
+        // Show the dialog
+        dialog.show();
     }
 }
