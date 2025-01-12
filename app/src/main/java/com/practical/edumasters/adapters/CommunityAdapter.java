@@ -143,15 +143,18 @@ public class CommunityAdapter extends RecyclerView.Adapter<CommunityAdapter.Post
     @Override
     public void onBindViewHolder(@NonNull PostViewHolder holder, int position, @NonNull List<Object> payloads) {
         if (!payloads.isEmpty()) {
-            if (payloads.contains("likeChanged")) {
-                CommunityPost post = postList.get(position);
-                String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
-                updateLikeButtonUI(holder, post, currentUserID);
+            for (Object payload : payloads) {
+                if (payload.equals("likeChanged")) {
+                    CommunityPost post = postList.get(position);
+                    String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    updateLikeButtonUI(holder, post, currentUserID);
+                    return;
+                }
             }
-        } else {
-            super.onBindViewHolder(holder, position, payloads);
         }
+        super.onBindViewHolder(holder, position, payloads);
     }
+
 
 
     private void updateLikeButtonUI(PostViewHolder holder, CommunityPost post, String currentUserID) {

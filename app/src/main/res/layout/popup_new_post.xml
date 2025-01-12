@@ -41,6 +41,8 @@
         android:layout_marginTop="2dp"
         android:background="@drawable/edittext_border"
         android:hint="Enter Title"
+        android:inputType="textMultiLine"
+        android:lines="1"
         android:outlineProvider="bounds"
         android:padding="12dp"
         android:textSize="20sp"

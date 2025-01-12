@@ -191,7 +191,6 @@ public class CommunityFragment extends Fragment {
                             postList.add(post);
                         }
                         adapter.notifyDataSetChanged();
-                        postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the latest post
                     }
                 });
     }
@@ -266,22 +265,42 @@ public class CommunityFragment extends Fragment {
             long timestamp = System.currentTimeMillis();
 
             CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(), imageToUpload);
+//            post.saveToFirebase(db, new CommunityPost.SaveCallback() {
+//                @Override
+//                public void onSuccess(String postId) {
+//                    Toast.makeText(getContext(), "Post added successfully!", Toast.LENGTH_SHORT).show();
+//                    popupWindow.dismiss();
+//
+//                    rootView.removeView(dimBackgroundView);
+//
+//                    post.setPostID(postId);
+//                    postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the new post
+//                }
+//
+//                @Override
+//                public void onFailure(Exception e) {
+//                    Toast.makeText(getContext(), "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+//                    Log.d(TAG,  e.getMessage());
+//                }
+//            });
+
+            // Save post to Firebase
             post.saveToFirebase(db, new CommunityPost.SaveCallback() {
                 @Override
                 public void onSuccess(String postId) {
                     Toast.makeText(getContext(), "Post added successfully!", Toast.LENGTH_SHORT).show();
                     popupWindow.dismiss();
-
                     rootView.removeView(dimBackgroundView);
 
                     post.setPostID(postId);
+                    adapter.notifyItemInserted(0); // Notify adapter of the new item
                     postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the new post
                 }
 
                 @Override
                 public void onFailure(Exception e) {
                     Toast.makeText(getContext(), "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    Log.d(TAG,  e.getMessage());
+                    Log.d(TAG, e.getMessage());
                 }
             });
         });
