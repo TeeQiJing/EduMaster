@@ -84,7 +84,7 @@
             android:textColor="#474242"
             android:layout_marginStart="@dimen/_97sdp"
             android:layout_marginTop="-10dp"
-            android:layout_marginBottom="@dimen/_60sdp"/>
+            android:layout_marginBottom="@dimen/_20sdp"/>
 
 
 

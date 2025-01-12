@@ -293,7 +293,8 @@ public class CommunityFragment extends Fragment {
                     rootView.removeView(dimBackgroundView);
 
                     post.setPostID(postId);
-                    adapter.notifyItemInserted(0); // Notify adapter of the new item
+                    //adapter.notifyItemInserted(0); // Notify adapter of the new item
+                    loadPosts();
                     postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the new post
                 }
 
