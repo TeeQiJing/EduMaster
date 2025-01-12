@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.TextPaint;
 import android.util.Base64;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -66,6 +67,8 @@ public class CommunityFragment extends Fragment {
     private static final int PICK_IMAGE_REQUEST = 1;
     private String imageToUpload = null; // Store the Base64 string of the image
     private ImageView noti;
+
+    private static final String TAG = "CommunityFragment";
 
     public CommunityFragment() {}
 
@@ -153,7 +156,7 @@ public class CommunityFragment extends Fragment {
                             String image = doc.getString("image");
 
                             // Create a CommunityPost object
-                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy,image);
+                            CommunityPost post = new CommunityPost(userID, title, content, timestamp, likedBy, image);
                             post.setPostID(postID);
                             postList.add(post);
                         }
@@ -230,7 +233,7 @@ public class CommunityFragment extends Fragment {
             String userID = currentUser != null ? currentUser.getUid() : "Unknown User";
             long timestamp = System.currentTimeMillis();
 
-            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(),imageToUpload);
+            CommunityPost post = new CommunityPost(userID, title, content, timestamp, new ArrayList<>(), imageToUpload);
             post.saveToFirebase(db, new CommunityPost.SaveCallback() {
                 @Override
                 public void onSuccess(String postId) {
@@ -249,6 +252,7 @@ public class CommunityFragment extends Fragment {
                 @Override
                 public void onFailure(Exception e) {
                     Toast.makeText(getContext(), "Failed to add post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.d(TAG,  e.getMessage());
                 }
             });
         });
@@ -336,10 +340,18 @@ public class CommunityFragment extends Fragment {
         }
     }
 
+//    private String encodeImageToBase64(Bitmap bitmap) {
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+//        byte[] byteArray = outputStream.toByteArray();
+//        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+//    }
+
     private String encodeImageToBase64(Bitmap bitmap) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 60, outputStream);
         byte[] byteArray = outputStream.toByteArray();
+
         return Base64.encodeToString(byteArray, Base64.DEFAULT);
     }
 }

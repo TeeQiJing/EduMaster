@@ -33,7 +33,7 @@ public class CommunityPost implements Serializable {
     private List<String> likedBy;
     private List<CommunityComment> commentList;
     private String username;
-    private String avatarURL; // Base64 String for the avatar
+    private String avatarURL; // Bease64 String for the avatar
     private String image;
 
     public CommunityPost(String userID, String title, String content, long timestamp, List<String> likedBy,String image) {
