@@ -39,7 +39,7 @@
             android:id="@+id/post_user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User A"
+            android:text=""
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -48,7 +48,6 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="· 3 hours ago"
             android:textColor="#808080"
             android:textSize="16sp" />
     </LinearLayout>
@@ -115,7 +114,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#E9E9E9"
-                android:text="19"
                 android:textColor="#80000000"
                 app:icon="@drawable/ic_like"
                 app:iconTint="#80000000" />
@@ -146,7 +144,6 @@
             android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:backgroundTint="#E9E9E9"
-            android:text="5"
             android:textColor="#80000000"
             app:icon="@drawable/ic_comment"
             app:iconTint="#80020202" />
