@@ -63,7 +63,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@drawable/curve_border_background"
-        android:clipToPadding="false"
+        android:clipToPadding="true"
         android:nestedScrollingEnabled="true"
         android:overScrollMode="always"
         android:padding="8dp"

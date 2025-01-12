@@ -48,7 +48,7 @@
                     android:id="@+id/comment_user_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="User A"
+                    android:text=""
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
@@ -57,7 +57,6 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
-                    android:text="· 3 hours ago"
                     android:textColor="#808080"
                     android:textSize="16sp" />
             </LinearLayout>

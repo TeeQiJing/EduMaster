@@ -116,6 +116,14 @@ public class SearchLesson extends Fragment {
         recyclerView = view.findViewById(R.id.result_rec_view);
         searchView = view.findViewById(R.id.search_post);
 
+        // Detect touch outside SearchView
+        view.findViewById(R.id.searchLessonFragment).setOnTouchListener((v, event) -> {
+            if (searchView.getQuery().toString().isEmpty()) {
+                requireActivity().getSupportFragmentManager().popBackStack(); // Return to the previous fragment
+            }
+            return false;
+        });
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
