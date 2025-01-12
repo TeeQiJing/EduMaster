@@ -34,7 +34,7 @@ public class CertAdapter extends RecyclerView.Adapter<CertAdapter.CertViewHolder
     @Override
     public void onBindViewHolder(@NonNull CertViewHolder holder, int position) {
         if(position<certCartArrayList.size()) {
-            holder.date.setText("Developer Certification on "+certCartArrayList.get(position).getDate());
+            holder.date.setText(certCartArrayList.get(position).getDate());
             holder.user_name.setText(certCartArrayList.get(position).getUser_name());
             holder.course_name.setText(certCartArrayList.get(position).getCourse_name());
         }
