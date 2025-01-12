@@ -165,7 +165,7 @@ public class SearchLesson extends Fragment {
         searchLessonAdapter = new SearchLessonAdapter(requireActivity().getSupportFragmentManager());
         recyclerView.setAdapter(searchLessonAdapter);
         recyclerView.setLayoutManager(new GridLayoutManager(requireContext(), 2));
-
+        fetchCurrentLessonData("");
     }
 
     private void fetchCurrentLessonData(String query) {
