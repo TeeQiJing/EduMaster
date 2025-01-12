@@ -232,9 +232,13 @@ public class CommunityFragment extends Fragment {
 
         // Show the popup window at the center
         popupWindow.showAtLocation(requireView(), Gravity.CENTER, 0, 0);
+        imageToUpload = null;
 
         // Remove dim background on popup dismiss
-        popupWindow.setOnDismissListener(() -> rootView.removeView(dimBackgroundView));
+        popupWindow.setOnDismissListener(() -> {
+            rootView.removeView(dimBackgroundView);
+            imageToUpload = null; // Reset imageToUpload when the popup is dismissed
+        });
 
         // Initialize popup views
         EditText postTitle = popupView.findViewById(R.id.popup_post_title);
@@ -293,8 +297,6 @@ public class CommunityFragment extends Fragment {
                     rootView.removeView(dimBackgroundView);
 
                     post.setPostID(postId);
-                    //adapter.notifyItemInserted(0); // Notify adapter of the new item
-                    loadPosts();
                     postsRecyclerView.scrollToPosition(0); // Scroll to the top to show the new post
                 }
 
