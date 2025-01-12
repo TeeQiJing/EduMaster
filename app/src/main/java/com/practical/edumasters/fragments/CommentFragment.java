@@ -194,19 +194,40 @@ public class CommentFragment extends Fragment {
         }
         CollectionReference commentsRef = db.collection("community").document(postID).collection("comments");
 
+//        commentsRef.orderBy("commentTimestamp", Query.Direction.DESCENDING)
+//                .get()
+//                .addOnSuccessListener(queryDocumentSnapshots -> {
+//                    commentList.clear();
+//                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
+//                        CommunityComment comment = doc.toObject(CommunityComment.class);
+//                        if (comment != null) {
+//                            commentList.add(comment);
+//                        }
+//                    }
+//                    commentAdapter.notifyDataSetChanged();
+//                })
+//                .addOnFailureListener(e -> Log.e(TAG, "Error loading comments", e));
         commentsRef.orderBy("commentTimestamp", Query.Direction.DESCENDING)
-                .get()
-                .addOnSuccessListener(queryDocumentSnapshots -> {
-                    commentList.clear();
-                    for (DocumentSnapshot doc : queryDocumentSnapshots) {
-                        CommunityComment comment = doc.toObject(CommunityComment.class);
-                        if (comment != null) {
-                            commentList.add(comment);
-                        }
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        Log.e(TAG, "Error loading comments", e);
+                        return;
                     }
-                    commentAdapter.notifyDataSetChanged();
-                })
-                .addOnFailureListener(e -> Log.e(TAG, "Error loading comments", e));
+
+                    if (queryDocumentSnapshots != null) {
+                        commentList.clear();
+                        for (DocumentSnapshot doc : queryDocumentSnapshots) {
+                            CommunityComment comment = doc.toObject(CommunityComment.class);
+                            if (comment != null) {
+                                commentList.add(comment);
+                            }
+                        }
+                        commentAdapter.notifyDataSetChanged();
+
+                        // Update the comment count in the UI
+                        postComments.setText(String.valueOf(commentList.size()));
+                    }
+                });
     }
 
     private void loadUpperPost(CommunityPost post){
