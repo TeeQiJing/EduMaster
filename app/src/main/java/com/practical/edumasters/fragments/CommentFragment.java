@@ -1,5 +1,6 @@
 package com.practical.edumasters.fragments;
 
+import android.app.AlertDialog;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -52,7 +53,7 @@ public class CommentFragment extends Fragment {
     private CommunityPost post;
     private ImageView avatarPost,likeOverlayIcon,imagePost;
     private TextView usernamePost, timestampPost, titlePost, contentPost;
-    private ImageButton btnBack;
+    private ImageButton btnBack, postDelete;
     private EditText inputComment;
     private Button btnSendComment,postLikes,postComments;
     private ConstraintLayout imageHolder;
@@ -61,13 +62,6 @@ public class CommentFragment extends Fragment {
         // Required empty public constructor
     }
 
-//    public static CommentFragment newInstance(String postID) {
-//        CommentFragment fragment = new CommentFragment();
-//        Bundle args = new Bundle();
-//        args.putString(ARG_POST_ID, postID);
-//        fragment.setArguments(args);
-//        return fragment;
-//    }
     public static CommentFragment newInstance(CommunityPost post) {
         CommentFragment fragment = new CommentFragment();
         Bundle args = new Bundle();
@@ -104,6 +98,7 @@ public class CommentFragment extends Fragment {
         likeOverlayIcon = view.findViewById(R.id.ic_liked);
         imageHolder = view.findViewById(R.id.imageHolder);
         imagePost = view.findViewById(R.id.post_image);
+        postDelete = view.findViewById(R.id.post_delete);
 
         loadUpperPost(post);
         String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -254,6 +249,15 @@ public class CommentFragment extends Fragment {
         } else {
             imageHolder.setVisibility(View.GONE);
         }
+
+        String currentUserID = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        // Handle delete button visibility and click
+        if (currentUserID.equals(post.getUserID())) {
+            postDelete.setVisibility(View.VISIBLE);
+        } else {
+            postDelete.setVisibility(View.GONE);
+        }
+        postDelete.setOnClickListener(v -> showPostDeleteConfirmationDialog(post));
     }
 
     private void displayImage(String avatarBase64, ImageView imageView) {
@@ -283,6 +287,41 @@ public class CommentFragment extends Fragment {
             likeOverlayIcon.setVisibility(View.GONE);
         }
         postLikes.setText(String.valueOf(post.getLikedBy().size())); // Update like count
+    }
+
+    private void showPostDeleteConfirmationDialog(CommunityPost post) {
+        // Inflate the custom layout for the dialog
+        LayoutInflater inflater = LayoutInflater.from(getContext());
+        View dialogView = inflater.inflate(R.layout.dialog_post_delete_confirmation, null);
+
+        // Build the AlertDialog
+        AlertDialog dialog = new AlertDialog.Builder(getContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        // Set up Cancel button
+        Button cancelButton = dialogView.findViewById(R.id.dialog_post_delete_cancel);
+        cancelButton.setOnClickListener(v -> dialog.dismiss()); // Dismiss dialog on cancel
+
+        // Set up Delete button
+        Button deleteButton = dialogView.findViewById(R.id.dialog_post_delete_confirmed);
+        deleteButton.setOnClickListener(v -> {
+            dialog.dismiss(); // Dismiss dialog
+            db.collection("community").document(post.getPostID())
+                    .delete()
+                    .addOnSuccessListener(aVoid -> {
+                        // Go back to the community page
+                        requireActivity().getSupportFragmentManager().popBackStack();
+                        Toast.makeText(getContext(), "Post deleted successfully", Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnFailureListener(e -> {
+                        Toast.makeText(getContext(), "Failed to delete post: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    });
+            dialog.dismiss(); // Dismiss dialog
+        });
+        // Show the dialog
+        dialog.show();
     }
 
 }
