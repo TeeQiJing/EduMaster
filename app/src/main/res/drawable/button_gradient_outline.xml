@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Gradient Outline -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#7512FF"
+                android:centerColor="#3978FF"
+                android:endColor="#94BBE9"
+                android:angle="-45"
+                android:type="linear" />
+            <corners android:radius="50dp" />
+        </shape>
+    </item>
+
+    <!-- Transparent Inner Background -->
+    <item
+        android:left="3dp"
+        android:right="3dp"
+        android:top="3dp"
+        android:bottom="3dp">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" /> <!-- Change to transparent or another color -->
+            <corners android:radius="45dp" />
+        </shape>
+    </item>
+</layer-list>

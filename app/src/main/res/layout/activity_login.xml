@@ -16,6 +16,17 @@
         android:gravity="center"
         android:padding="@dimen/_16sdp">
 
+        <com.makeramen.roundedimageview.RoundedImageView
+            android:id="@+id/appIcon"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_marginTop="40dp"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/ic_app_launcher_round"
+            android:layout_marginBottom="20dp"
+            app:riv_corner_radius="40dp"
+            app:riv_oval="true"
+   />
         <!-- App Logo or Title -->
         <TextView
             android:id="@+id/tv_app_name"

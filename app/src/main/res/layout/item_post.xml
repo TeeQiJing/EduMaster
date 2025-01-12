@@ -39,7 +39,7 @@
             android:id="@+id/post_user_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="User A"
+            android:text=""
             android:textSize="18sp"
             android:textStyle="bold" />
 
@@ -48,9 +48,27 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
-            android:text="· 3 hours ago"
             android:textColor="#808080"
             android:textSize="16sp" />
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <ImageButton
+                android:id="@+id/post_delete"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:backgroundTint="@color/white"
+                android:scaleType="fitCenter"
+                android:visibility="invisible"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:srcCompat="@drawable/ic_delete"
+                app:tint="#F44336" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
     </LinearLayout>
 
     <!-- Post Title -->
@@ -66,6 +84,27 @@
         android:textStyle="bold" />
 
     <!-- Post Content -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/imageHolder"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp">
+
+        <ImageView
+            android:id="@+id/post_image"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:layout_marginStart="122dp"
+            android:layout_marginEnd="123dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/avatars" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <TextView
         android:id="@+id/post_content"
         android:layout_width="match_parent"
@@ -97,7 +136,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:backgroundTint="#E9E9E9"
-                android:text="19"
                 android:textColor="#80000000"
                 app:icon="@drawable/ic_like"
                 app:iconTint="#80000000" />
@@ -128,7 +166,6 @@
             android:layout_marginStart="16dp"
             android:layout_weight="1"
             android:backgroundTint="#E9E9E9"
-            android:text="5"
             android:textColor="#80000000"
             app:icon="@drawable/ic_comment"
             app:iconTint="#80020202" />
